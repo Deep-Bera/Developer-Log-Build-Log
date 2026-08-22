@@ -33,11 +33,25 @@ logsController.createLog = async (req, res) => {
 
 logsController.getAllLogs = async (req, res) => {
   const { projectId } = req.params;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const sort = req.query.sort === "asc" ? 1 : -1;
+  const skip = (page - 1) * limit;
 
   try {
-    const logs = await Log.find({ projectId, userId: req.userId });
+    const total = await Log.countDocuments({ projectId, userId: req.userId });
 
-    res.status(200).json({ data: logs });
+    const logs = await Log.find({ projectId, userId: req.userId })
+      .sort({ createdAt: sort })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      data: logs,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
