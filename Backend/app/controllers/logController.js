@@ -35,13 +35,16 @@ logsController.getAllLogs = async (req, res) => {
   const { projectId } = req.params;
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
+  const entryType = req.query.entryType;
   const sort = req.query.sort === "asc" ? 1 : -1;
   const skip = (page - 1) * limit;
 
   try {
-    const total = await Log.countDocuments({ projectId, userId: req.userId });
+    const query = { projectId, userId: req.userId };
+    if (entryType) query.entryType = entryType;
+    const total = await Log.countDocuments(query);
 
-    const logs = await Log.find({ projectId, userId: req.userId })
+    const logs = await Log.find(query)
       .sort({ createdAt: sort })
       .skip(skip)
       .limit(limit);
