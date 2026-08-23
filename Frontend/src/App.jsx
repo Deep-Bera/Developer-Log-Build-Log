@@ -4,7 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import Project from "./pages/Project";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SideBar from "./components/SideBar";
-import ProjectLogs from "./components/logs/ProjectLogs";
+import ProjectLogs from "./components/logsPage/ProjectLogs";
 
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useEffect, useContext } from "react";
@@ -19,8 +19,9 @@ function App() {
   // pages where sidebar should NOT appear....
   const authPages = ["/", "/Login", "/Register"];
   const showSidebar = !authPages.includes(location.pathname);
-  console.log(location.pathname, showSidebar);
+  // console.log(location.pathname, showSidebar);
   // this useEffect is only there to handle page reload
+  console.log("token on mount:", localStorage.getItem("token"));
   useEffect(() => {
     if (localStorage.getItem("token")) {
       axios
@@ -48,7 +49,17 @@ function App() {
         {" "}
         <Routes>
           <Route path="/Login" element={<Login />} />
-          <Route path="/" element={<Login />} />
+          <Route
+            path="/"
+            element={
+              localStorage.getItem("token") ? (
+                <Navigate to="/Dashboard" replace />
+              ) : (
+                <Login />
+              )
+            }
+          />
+
           <Route path="/Register" element={<Register />} />
           <Route
             path="/Dashboard"
@@ -74,7 +85,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           {/* to prevent from going to random routes which is not present .... */}
           <Route
             path="*"
