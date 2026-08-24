@@ -6,6 +6,7 @@ import PublicFeed from "./pages/PublicFeed";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SideBar from "./components/SideBar";
 import ProjectLogs from "./components/logsPage/ProjectLogs";
+import PublicProjectView from "./components/publicLogs/PublicProjectView";
 
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useEffect, useContext } from "react";
@@ -22,7 +23,7 @@ function App() {
   const showSidebar = !authPages.includes(location.pathname);
   // console.log(location.pathname, showSidebar);
   // this useEffect is only there to handle page reload
-  console.log("token on mount:", localStorage.getItem("token"));
+  // console.log("token on mount:", localStorage.getItem("token"));
   useEffect(() => {
     if (localStorage.getItem("token")) {
       axios
@@ -94,6 +95,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/public/:id" element={<PublicProjectView />} />
           {/* to prevent from going to random routes which is not present .... */}
           <Route
             path="*"

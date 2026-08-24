@@ -144,7 +144,7 @@ export default function ProjectLogs() {
       </div> */}
 
       {/* project details top bar...  */}
-      <div className="flex items-center justify-between px-7 py-4 bg-white dark:bg-neutral-900 shrink-0 shadow-sm rounded-2xl ">
+      <div className="flex items-center justify-between px-7 py-4 bg-white dark:bg-neutral-900 shrink-0 shadow-sm rounded-xl ">
         <div>
           <div className="flex items-center gap-2.5 mb-1.5">
             <span className="text-base font-semibold text-neutral-900 dark:text-white capitalize">
@@ -220,7 +220,7 @@ export default function ProjectLogs() {
       {/* body — two columns */}
       <div className="flex flex-1 overflow-hidden gap-2 p-2">
         {/* left column */}
-        <div className="w-[40%] shrink-0 flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-neutral-900 shadow-sm">
+        <div className="w-[40%] shrink-0 flex flex-col overflow-hidden rounded-xl bg-white dark:bg-neutral-900 shadow-sm">
           {/* filter + sort */}
           <div className="flex items-center gap-1.5 px-5 py-2.5 flex-wrap shrink-0">
             {["all", "Decision", "Blocker", "Win", "Learn"].map((f) => (
@@ -280,7 +280,7 @@ export default function ProjectLogs() {
         </div>
 
         {/* right column */}
-        <div className="flex-1 overflow-hidden rounded-2xl bg-white dark:bg-neutral-900 shadow-sm">
+        <div className="flex-1 overflow-hidden rounded-xl bg-white dark:bg-neutral-900 shadow-sm">
           <LogDetail
             key={selectedLog?._id || "empty"}
             projectId={id}

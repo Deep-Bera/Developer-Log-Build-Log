@@ -32,10 +32,15 @@ export default function PublicFeed() {
     p.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  if (loading) return <p>Loading...</p>;
-
+  if (loading) {
+    return (
+      <div className="min-h-screen p-6 bg-neutral-50 dark:bg-neutral-950 text-neutral-500 dark:text-neutral-400">
+        <p className="text-sm">Loading public projects...</p>
+      </div>
+    );
+  }
   return (
-    <div className="p-6">
+    <div className="min-h-screen p-6 bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-white transition-colors duration-200">
       {/* topbar */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -65,12 +70,12 @@ export default function PublicFeed() {
           {filteredProjects.map((project) => (
             <div
               key={project._id}
-              onClick={() => navigate(`/Project/${project._id}`)}
+              onClick={() => navigate(`/public/${project._id}`)}
               className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-5 cursor-pointer hover:border-neutral-300 dark:hover:border-neutral-600 hover:shadow-md transition-all"
             >
               {/* name and status */}
               <div className="flex items-start justify-between mb-3">
-                <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+                <p className="text-sm font-semibold text-neutral-900 dark:text-white capitalize">
                   {project.name}
                 </p>
                 <span
@@ -92,9 +97,9 @@ export default function PublicFeed() {
               </p>
 
               {/* meta row */}
-              <div className="flex items-center gap-4 pt-3 border-t border-neutral-100 dark:border-neutral-700">
+              <div className="flex items-center gap-4 pt-3 border-t border-neutral-100 dark:border-neutral-800">
                 <span className="text-xs text-neutral-400 dark:text-neutral-500">
-                  {project.logCount} logs
+                  {project.logCount || 0} logs
                 </span>
                 <span className="text-xs text-neutral-400 dark:text-neutral-500">
                   Started{" "}
