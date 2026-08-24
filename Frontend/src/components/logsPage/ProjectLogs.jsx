@@ -25,13 +25,15 @@ export default function ProjectLogs() {
 
   // fetch project details...
   useEffect(() => {
-    axios
-      .get(`/api/projects/${id}`, { headers })
-      .then((response) => setProject(response.data.data))
-      .catch((err) => {
+    (async () => {
+      try {
+        const response = await axios.get(`/api/projects/${id}`, { headers });
+        setProject(response.data.data);
+      } catch (err) {
         handleAuthError(err);
         console.log(err.response.data);
-      });
+      }
+    })();
   }, [id]);
 
   // fetch logs — reruns when page, sort, filter, or refresh changes....
@@ -303,74 +305,3 @@ export default function ProjectLogs() {
     </div>
   );
 }
-
-// <div className="px-5 py-4 shrink-0">
-//   <div className="flex items-start justify-between mb-2">
-//     <div className="flex items-center gap-2 flex-wrap">
-//       <span className="text-base font-semibold text-neutral-900 dark:text-white">
-//         {project.name}
-//       </span>
-//       <span
-//         className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full
-//         ${
-//           project.status === "in-progress"
-//             ? "bg-[#faeeda] text-[#854f0b]"
-//             : "bg-[#eaf3de] text-[#27500a]"
-//         }`}
-//       >
-//         {project.status === "in-progress" ? "Building" : "Complete"}
-//       </span>
-//     </div>
-//     <div className="flex items-center gap-2">
-//       <button
-//         onClick={handleTogglePublic}
-//         className="px-3 py-1.5 text-xs font-medium rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
-//       >
-//         {project.isPublic ? "Make private" : "Make public"}
-//       </button>
-//       {project.status === "in-progress" && (
-//         <button
-//           onClick={handleMarkComplete}
-//           className="px-3 py-1.5 text-xs font-medium rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
-//         >
-//           Mark complete
-//         </button>
-//       )}
-//       <button
-//         onClick={() => {
-//           /* edit project modal */
-//         }}
-//         className="px-3 py-1.5 text-xs font-medium rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-neutral-700 dark:hover:bg-neutral-200 transition-colors"
-//       >
-//         Edit logs
-//       </button>
-//       <button
-//         onClick={handleAddLog}
-//         className="px-3 py-1.5 text-xs font-medium rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-neutral-700 dark:hover:bg-neutral-200 transition-colors"
-//       >
-//         + Add log
-//       </button>
-//     </div>
-//   </div>
-//   <div className="flex items-center gap-3 flex-wrap">
-//     <span className="text-xs text-neutral-400 dark:text-neutral-500">
-//       Started{" "}
-//       {new Date(project.startDate).toLocaleDateString("en-US", {
-//         month: "short",
-//         day: "numeric",
-//         year: "numeric",
-//       })}
-//     </span>
-//     <span className="text-xs text-neutral-400 dark:text-neutral-500">
-//       {project.logCount} entries
-//     </span>
-//     {project.stack.map((tech) => (
-//       <span
-//         key={tech}
-//         className="text-[11px] px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
-//       >
-//         {tech}
-//       </span>
-//     ))}
-//   </div>
-// </div>

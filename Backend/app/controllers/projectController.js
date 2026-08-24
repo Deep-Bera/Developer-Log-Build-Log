@@ -121,7 +121,7 @@ projectController.getAllPublicProjects = async (req, res) => {
     const projects = await Project.find({
       isPublic: true,
       isHidden: false,
-    });
+    }).populate("userId", "name");
 
     if (projects.length === 0) {
       return res.status(200).json({ data: [] });
@@ -141,7 +141,7 @@ projectController.getPublicProjectById = async (req, res) => {
       _id: id,
       isPublic: true,
       isHidden: false,
-    });
+    }).populate("userId", "name");
 
     if (!project) {
       return res.status(404).json({ message: "Project not found" });

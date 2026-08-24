@@ -2,6 +2,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Project from "./pages/Project";
+import PublicFeed from "./pages/PublicFeed";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SideBar from "./components/SideBar";
 import ProjectLogs from "./components/logsPage/ProjectLogs";
@@ -82,6 +83,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProjectLogs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/PublicFeed"
+            element={
+              <ProtectedRoute>
+                <PublicFeed />
               </ProtectedRoute>
             }
           />

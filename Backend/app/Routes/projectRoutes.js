@@ -27,9 +27,13 @@ router.get(
   projectController.getAllProject,
 );
 
-router.get("/public", projectController.getAllPublicProjects);
+router.get("/public", authenticateUser, projectController.getAllPublicProjects);
 
-router.get("/public/:id", projectController.getPublicProjectById);
+router.get(
+  "/public/:id",
+  authenticateUser,
+  projectController.getPublicProjectById,
+);
 
 router.get(
   "/:id",
