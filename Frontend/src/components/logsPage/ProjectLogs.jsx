@@ -26,6 +26,7 @@ export default function ProjectLogs() {
 
   // fetch project details...
   useEffect(() => {
+    localStorage.setItem("lastVisitedProject", id); // to store the id of the project which was last opened...
     (async () => {
       try {
         const response = await axios.get(`/api/projects/${id}`, { headers });

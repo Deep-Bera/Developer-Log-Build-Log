@@ -5,19 +5,23 @@ import Logo from "../assets/favicon.svg";
 import { useContext } from "react";
 import {
   LayoutDashboard,
-  FolderOpen,
-  // ScrollText,
+  // FolderOpen,
+  ScrollText,
   Sparkles,
   Globe,
   Moon,
   Sun,
   LogOut,
 } from "lucide-react";
-
+const lastProjectId = localStorage.getItem("lastVisitedProject");
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/Dashboard" },
-  { label: "Projects", icon: FolderOpen, to: "/Projects" },
-  // { label: "Logs", icon: ScrollText, to: "/Logs" },
+  // { label: "Projects", icon: FolderOpen, to: "/Projects" },
+  {
+    label: "Logs",
+    icon: ScrollText,
+    to: lastProjectId ? `/Project/${lastProjectId}` : "/Dashboard",
+  },
   { label: "Ask AI", icon: Sparkles, to: "/AskAI" },
   { label: "Public feed", icon: Globe, to: "/PublicFeed" },
 ];
