@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "../../axiosConfig/axiosConfig";
-import { GitBranch, AlertTriangle, Trophy, Lightbulb } from "lucide-react";
+import {
+  GitBranch,
+  AlertTriangle,
+  Trophy,
+  Lightbulb,
+  ChevronLeft,
+} from "lucide-react";
 const typeBadge = {
   Decision: "bg-[#eeedfe] text-[#3c3489]",
   Blocker: "bg-[#fcebeb] text-[#a32d2d]",
@@ -42,7 +48,7 @@ const typeGrid = [
 
 export default function PublicProjectView() {
   const { id } = useParams();
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [logs, setLogs] = useState([]);
   const [selectedLog, setSelectedLog] = useState(null);
@@ -128,6 +134,13 @@ export default function PublicProjectView() {
 
       {/* project header — full width, read only, no action buttons */}
       <div className="flex items-center justify-between px-7 py-4 bg-white dark:bg-neutral-900 shrink-0 shadow-sm rounded-xl ">
+        <div
+          onClick={() => navigate("/PublicFeed")}
+          className="inline-flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-600 hover:text-neutral-400 dark:hover:text-neutral-300 cursor-pointer mb-3 transition-colors"
+        >
+          <ChevronLeft size={13} />
+          <span>Public Feed</span>
+        </div>
         <div>
           <div className="flex items-center gap-2.5 mb-1.5">
             <span className="text-base font-semibold text-neutral-900 dark:text-white">

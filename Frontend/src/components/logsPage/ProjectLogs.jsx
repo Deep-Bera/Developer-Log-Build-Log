@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "../../axiosConfig/axiosConfig";
 import useAuthError from "../../customHook/AuthErrorHook";
 import LogList from "./LogList";
 import LogDetail from "./LogsDetails";
 import ProjectModal from "../project/projectModal";
+import { ChevronLeft } from "lucide-react";
 
 export default function ProjectLogs() {
   const { id } = useParams();
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [logs, setLogs] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all");
@@ -145,6 +146,13 @@ export default function ProjectLogs() {
 
       {/* project details top bar...  */}
       <div className="flex items-center justify-between px-7 py-4 bg-white dark:bg-neutral-900 shrink-0 shadow-sm rounded-xl">
+        <div
+          onClick={() => navigate("/Dashboard")}
+          className="inline-flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-600 hover:text-neutral-400 dark:hover:text-neutral-300 cursor-pointer mb-3 transition-colors"
+        >
+          <ChevronLeft size={13} />
+          <span>Projects</span>
+        </div>
         <div>
           <div className="flex items-center gap-2.5 mb-1.5">
             <span className="text-base font-semibold text-neutral-900 dark:text-white capitalize">
