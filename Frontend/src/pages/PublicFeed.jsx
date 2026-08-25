@@ -66,12 +66,12 @@ export default function PublicFeed() {
           <p className="text-sm">No public projects found</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ">
           {filteredProjects.map((project) => (
             <div
               key={project._id}
               onClick={() => navigate(`/public/${project._id}`)}
-              className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-5 cursor-pointer hover:border-neutral-300 dark:hover:border-neutral-600 hover:shadow-md transition-all"
+              className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-5 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-1 hover:border-neutral-300 dark:hover:border-neutral-600 hover:shadow-xl dark:hover:shadow-xl dark:hover:shadow-emerald-100/10"
             >
               {/* name and status */}
               <div className="flex items-start justify-between mb-3">

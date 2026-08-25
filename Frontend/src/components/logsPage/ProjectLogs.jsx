@@ -144,7 +144,7 @@ export default function ProjectLogs() {
       </div> */}
 
       {/* project details top bar...  */}
-      <div className="flex items-center justify-between px-7 py-4 bg-white dark:bg-neutral-900 shrink-0 shadow-sm rounded-xl ">
+      <div className="flex items-center justify-between px-7 py-4 bg-white dark:bg-neutral-900 shrink-0 shadow-sm rounded-xl">
         <div>
           <div className="flex items-center gap-2.5 mb-1.5">
             <span className="text-base font-semibold text-neutral-900 dark:text-white capitalize">

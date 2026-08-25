@@ -1,13 +1,44 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "../../axiosConfig/axiosConfig";
-
+import { GitBranch, AlertTriangle, Trophy, Lightbulb } from "lucide-react";
 const typeBadge = {
   Decision: "bg-[#eeedfe] text-[#3c3489]",
   Blocker: "bg-[#fcebeb] text-[#a32d2d]",
   Win: "bg-[#eaf3de] text-[#27500a]",
   Learn: "bg-[#faeeda] text-[#633806]",
 };
+
+const typeGrid = [
+  {
+    label: "Decision",
+    icon: GitBranch,
+    border: "border-[#7f77dd]",
+    bg: "bg-[#eeedfe]",
+    text: "text-[#3c3489]",
+  },
+  {
+    label: "Blocker",
+    icon: AlertTriangle,
+    border: "border-[#e24b4a]",
+    bg: "bg-[#fcebeb]",
+    text: "text-[#a32d2d]",
+  },
+  {
+    label: "Win",
+    icon: Trophy,
+    border: "border-[#639922]",
+    bg: "bg-[#eaf3de]",
+    text: "text-[#27500a]",
+  },
+  {
+    label: "Learn",
+    icon: Lightbulb,
+    border: "border-[#ba7517]",
+    bg: "bg-[#faeeda]",
+    text: "text-[#633806]",
+  },
+];
 
 export default function PublicProjectView() {
   const { id } = useParams();
@@ -66,8 +97,12 @@ export default function PublicProjectView() {
     setPage(1);
   };
 
-  if (!project) return <p>Loading...</p>;
-
+  if (!project)
+    return (
+      <div className="min-h-screen p-6 bg-neutral-50 dark:bg-neutral-950 text-neutral-500 dark:text-neutral-400">
+        <p className="text-sm">Loading public projects logs...</p>
+      </div>
+    );
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-neutral-50 dark:bg-neutral-950">
       {/* topbar */}
@@ -247,7 +282,7 @@ export default function PublicProjectView() {
         {/* right column — read only detail */}
         <div className="flex-1 overflow-hidden rounded-xl bg-white dark:bg-neutral-900 shadow-sm">
           {!selectedLog ? (
-            <div className="h-full flex flex-col items-center justify-center gap-1.5">
+            <div className="h-full flex flex-col items-center justify-center gap-2">
               <p className="text-sm font-medium text-neutral-400 dark:text-neutral-500">
                 No log selected
               </p>
@@ -257,14 +292,45 @@ export default function PublicProjectView() {
             </div>
           ) : (
             <div className="h-full flex flex-col px-8 py-6 overflow-hidden">
-              {/* badge + date */}
-              <div className="flex items-center gap-3 mb-5 shrink-0">
-                <span
-                  className={`text-[11px] font-medium px-2.5 py-1 rounded-full ${typeBadge[selectedLog.entryType]}`}
-                >
-                  {selectedLog.entryType}
-                </span>
+              {/* entry type grid — read-only state */}
+              <div className="grid grid-cols-4 gap-2 mb-5 shrink-0">
+                {typeGrid.map(({ label, icon: Icon, border, bg, text }) => {
+                  const isSelected = selectedLog.entryType === label;
+                  return (
+                    <div
+                      key={label}
+                      className={`flex flex-col items-center gap-2 py-3 px-2 rounded-xl border transition-all cursor-default ${
+                        isSelected
+                          ? `${border} ${bg} border-[1.5px]`
+                          : "border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800"
+                      }`}
+                    >
+                      <Icon
+                        size={16}
+                        className={
+                          isSelected
+                            ? text
+                            : "text-neutral-300 dark:text-neutral-600"
+                        }
+                      />
+                      <span
+                        className={`text-[11px] font-medium ${
+                          isSelected
+                            ? text
+                            : "text-neutral-400 dark:text-neutral-600"
+                        }`}
+                      >
+                        {label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* date subheader */}
+              <div className="mb-3 shrink-0 flex items-center justify-between">
                 <span className="text-xs text-neutral-400 dark:text-neutral-500">
+                  Logged on{" "}
                   {new Date(selectedLog.createdAt).toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",
@@ -273,22 +339,29 @@ export default function PublicProjectView() {
                 </span>
               </div>
 
-              {/* content */}
-              <p className="flex-1 text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap overflow-y-auto hide-scrollbar mb-4">
-                {selectedLog.content}
-              </p>
+              {/* content textarea */}
+              <div className="flex-1 flex flex-col min-h-0 mb-4 overflow-y-auto hide-scrollbar">
+                <textarea
+                  rows={6}
+                  readOnly
+                  value={selectedLog.content || ""}
+                  className="w-full flex-1 px-0 py-0 text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed resize-none outline-none bg-transparent cursor-default"
+                />
+              </div>
 
               {/* tags */}
-              {selectedLog.tags.length > 0 && (
-                <div className="flex gap-1.5 flex-wrap shrink-0">
-                  {selectedLog.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-[11px] px-2.5 py-1 rounded-full border border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-500"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+              {selectedLog.tags?.length > 0 && (
+                <div className="mb-2 shrink-0">
+                  <div className="flex gap-1.5 flex-wrap">
+                    {selectedLog.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className={`text-[11px] px-2.5 py-1 rounded-full ${typeBadge[selectedLog.entryType]} bg-opacity-60`}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
