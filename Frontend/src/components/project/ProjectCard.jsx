@@ -29,9 +29,9 @@ export default function ProjectCard({
   }, []);
 
   return (
-    <div className="group relative bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-4 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-1 hover:border-neutral-300 dark:hover:border-neutral-600 hover:shadow-xl dark:hover:shadow-xl dark:hover:shadow-emerald-100/10">
+    <div className="group relative bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-3 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-1 hover:border-neutral-300 dark:hover:border-neutral-600 hover:shadow-xl dark:hover:shadow-xl dark:hover:shadow-emerald-100/10">
       {/* top row — name, stack, badge, menu */}
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-2">
         <div className="flex-1 min-w-0 pr-2">
           <h3 className="text-[14px] font-semibold text-neutral-900 dark:text-white truncate capitalize group-hover:text-neutral-600  dark:group-hover:text-sky-400 transition-colors">
             {project.name}
@@ -41,14 +41,23 @@ export default function ProjectCard({
             {(Array.isArray(project.stack)
               ? project.stack
               : (project.stack || "").split(",").map((s) => s.trim())
-            ).map((tech, idx) => (
-              <span
-                key={idx}
-                className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700/60 uppercase"
-              >
-                {tech}
+            )
+              .slice(0, 3)
+              .map((tech, idx) => (
+                <span
+                  key={idx}
+                  className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700/60 uppercase"
+                >
+                  {tech}
+                </span>
+              ))}
+
+            {/* show +N if there are more than 3.. */}
+            {project.stack.length > 3 && (
+              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-500 border border-neutral-200 dark:border-neutral-700/60">
+                +{project.stack.length - 3}
               </span>
-            ))}
+            )}
           </div>
         </div>
 
