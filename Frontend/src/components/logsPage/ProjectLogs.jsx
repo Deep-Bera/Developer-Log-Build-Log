@@ -5,7 +5,7 @@ import useAuthError from "../../customHook/AuthErrorHook";
 import LogList from "./LogList";
 import LogDetail from "./LogsDetails";
 import ProjectModal from "../project/projectModal";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 
 export default function ProjectLogs() {
   const { id } = useParams();
@@ -124,7 +124,15 @@ export default function ProjectLogs() {
     setSelectedLog(null);
     setIsAdding(true);
   };
-  if (!project) return <p>Loading...</p>;
+  if (!project)
+    return (
+      <div className="flex items-center justify-center h-screen bg-neutral-50 dark:bg-neutral-950">
+        <Loader2
+          size={20}
+          className="animate-spin text-neutral-400 dark:text-neutral-500"
+        />
+      </div>
+    );
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-neutral-50 dark:bg-neutral-950">
