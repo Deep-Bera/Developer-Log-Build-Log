@@ -26,6 +26,7 @@ export default function ProjectLogs() {
 
   // fetch project details...
   useEffect(() => {
+    localStorage.removeItem("lastVisitedProject");
     localStorage.setItem("lastVisitedProject", id); // to store the id of the project which was last opened...
     (async () => {
       try {

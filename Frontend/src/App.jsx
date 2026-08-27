@@ -96,6 +96,7 @@ function App() {
             }
           />
           <Route path="/public/:id" element={<PublicProjectView />} />
+
           {/* to prevent from going to random routes which is not present .... */}
           <Route
             path="*"

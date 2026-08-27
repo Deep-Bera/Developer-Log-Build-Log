@@ -154,7 +154,7 @@ export default function Dashboard() {
         </span>
         <button
           onClick={openAddModal}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-[13px] font-medium rounded-lg hover:bg-neutral-700 dark:hover:bg-neutral-200 active:scale-95 transition-all duration-150"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 cursor-pointer bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-[13px] font-medium rounded-lg hover:bg-neutral-700 dark:hover:bg-neutral-200 active:scale-95 transition-all duration-150"
         >
           <Plus size={14} />
           New project
@@ -200,7 +200,7 @@ export default function Dashboard() {
               <button
                 key={f}
                 onClick={() => handleFilterChange(f)}
-                className={`h-8 px-3 rounded-xl text-[12px] font-medium border transition-all duration-150 flex items-center justify-center ${
+                className={`cursor-pointer h-8 px-3 rounded-xl text-[12px] font-medium border transition-all duration-150 flex items-center justify-center ${
                   activeFilter === f
                     ? "bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 border-neutral-800 dark:border-white"
                     : "bg-white dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800/80 hover:text-neutral-900 dark:hover:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-700"

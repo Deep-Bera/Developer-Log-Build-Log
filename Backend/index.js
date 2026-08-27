@@ -8,7 +8,7 @@ import configDB from "./app/config/db.js";
 import userRoute from "./app/Routes/userRoutes.js";
 import projectRoute from "./app/Routes/projectRoutes.js";
 import logsRoute from "./app/Routes/logRoutes.js";
-
+import artifactRoute from "./app/Routes/artifactRoute.js";
 const app = express();
 const port = process.env.PORT;
 configDB();
@@ -19,12 +19,14 @@ app.use(express.json());
 app.get("/", async (req, res) => {
   res.status(200).json("hello user");
 });
-// *-------------------------------------User Routes--------------------------//
+// *-------------------------------------User Routes-----------------------------//
 app.use("/api/users", userRoute);
 // *-------------------------------------Project Routes--------------------------//
 app.use("/api/projects", projectRoute);
-// *-------------------------------------Logs Routes--------------------------//
+// *-------------------------------------Logs Routes-----------------------------//
 app.use("/api/logs", logsRoute);
+// *-----------------------------------artifact Routes---------------------------//
+app.use("/api/artifacts", artifactRoute);
 
 app.listen(port, () => {
   console.log("server is running on PORT", port);

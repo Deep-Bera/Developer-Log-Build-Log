@@ -29,6 +29,7 @@ export default function AuthProvider(props) {
     localStorage.removeItem("token");
     localStorage.removeItem("id");
     localStorage.removeItem("role");
+    localStorage.removeItem("lastVisitedProject");
   };
   const handleReload = (user) => {
     dispatch({ type: "Reload", payload: user });

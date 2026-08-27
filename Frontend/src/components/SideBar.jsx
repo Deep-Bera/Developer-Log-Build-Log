@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../customHook/useThem";
 import AuthContext from "../context/AuthContext";
 import Logo from "../assets/favicon.svg";
@@ -13,24 +13,25 @@ import {
   Sun,
   LogOut,
 } from "lucide-react";
-const lastProjectId = localStorage.getItem("lastVisitedProject");
-const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard, to: "/Dashboard" },
-  // { label: "Projects", icon: FolderOpen, to: "/Projects" },
-  {
-    label: "Logs",
-    icon: ScrollText,
-    to: lastProjectId ? `/Project/${lastProjectId}` : "/Dashboard",
-  },
-  { label: "Ask AI", icon: Sparkles, to: "/AskAI" },
-  { label: "Public feed", icon: Globe, to: "/PublicFeed" },
-];
 
 export default function Sidebar() {
   const { user } = useContext(AuthContext);
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
 
+  const lastProjectId = localStorage.getItem("lastVisitedProject");
+  const navItems = [
+    { label: "Dashboard", icon: LayoutDashboard, to: "/Dashboard" },
+    // { label: "Projects", icon: FolderOpen, to: "/Projects" },
+    {
+      label: "Logs",
+      icon: ScrollText,
+      to: lastProjectId ? `/Project/${lastProjectId}` : "/Dashboard",
+    },
+    { label: "Ask AI", icon: Sparkles, to: "/AskAI" },
+    { label: "Public feed", icon: Globe, to: "/PublicFeed" },
+  ];
   // assinging the user name from the context ..
   const username = user?.user?.name || localStorage.getItem("username") || "U";
   const role = user?.role || localStorage.getItem("role") || "user";
@@ -61,23 +62,27 @@ export default function Sidebar() {
         <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-600 px-2 mb-2">
           Menu
         </p>
-        {navItems.map(({ label, icon: Icon, to }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-              ${
+        {navItems.map(({ label, icon: Icon, to }) => {
+          const isActive =
+            label === "Logs"
+              ? location.pathname.startsWith("/Project")
+              : location.pathname.toLowerCase() === to.toLowerCase();
+
+          return (
+            <NavLink
+              key={label}
+              to={to}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive
                   ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white"
                   : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white"
-              }`
-            }
-          >
-            <Icon size={16} />
-            {label}
-          </NavLink>
-        ))}
+              }`}
+            >
+              <Icon size={16} />
+              {label}
+            </NavLink>
+          );
+        })}
       </nav>
 
       {/* bottom section */}
