@@ -6,7 +6,8 @@ import LogList from "./LogList";
 import LogDetail from "./LogsDetails";
 import ProjectModal from "../project/projectModal";
 import ArtifactModal from "../artifacts/ArtifactModal";
-import { ChevronLeft, Loader2, Sparkles } from "lucide-react";
+import ProjectTopBar from "../ProjectTopbar";
+import { Loader2, Sparkles } from "lucide-react";
 
 export default function ProjectLogs() {
   const { id } = useParams();
@@ -153,140 +154,44 @@ export default function ProjectLogs() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-neutral-50 dark:bg-neutral-950">
-      {/* topbar */}
-      {/* <div className="flex items-center justify-between px-7 py-4 shrink-0 bg-white dark:bg-neutral-900 shadow-sm">
-        <div className="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
-          <span
-            onClick={() => navigate("/Dashboard")}
-            className="cursor-pointer hover:text-neutral-900 dark:hover:text-white transition-colors"
-          >
-            Projects
-          </span>
-          <span className="text-neutral-300 dark:text-neutral-700 text-2xl">
-            ›
-          </span>
-          <span className=" cursor-pointer text-neutral-900 dark:text-white font-medium capitalize">
-            {project.name}
-          </span>
-        </div>
-      </div> */}
-
       {/* project details top bar...  */}
-      <div className="flex items-center justify-between px-7 py-4 bg-white dark:bg-neutral-900 shrink-0 shadow-sm rounded-xl">
-        <div
-          onClick={() => navigate("/Dashboard")}
-          className="inline-flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-550 hover:text-neutral-400 dark:hover:text-neutral-300 cursor-pointer mb-3 transition-colors"
-        >
-          <ChevronLeft size={13} />
-          <span>Projects</span>
-        </div>
-        <div>
-          <div className="flex items-center gap-2.5 mb-1.5">
-            <span className="text-base font-semibold text-neutral-900 dark:text-white capitalize">
-              {project.name}
-            </span>
-            <span
-              className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full
-              ${
-                project.status === "in-progress"
-                  ? "bg-[#faeeda] text-[#854f0b]"
-                  : "bg-[#eaf3de] text-[#27500a]"
-              }`}
-            >
-              {project.status === "in-progress" ? "Building" : "Complete"}
-            </span>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-xs text-neutral-400 dark:text-neutral-500">
-              Started{" "}
-              {new Date(project.startDate).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </span>
-            <span className="text-xs text-neutral-400 dark:text-neutral-500">
-              {project.logCount} entries
-            </span>
-
-            {(Array.isArray(project.stack)
-              ? project.stack
-              : (project.stack || "").split(",").map((s) => s.trim())
-            )
-              .slice(0, 3)
-              .map((tech, idx) => (
-                <span
-                  key={idx}
-                  className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700/60 uppercase"
-                >
-                  {tech}
-                </span>
-              ))}
-
-            {/* show +N if there are more than 3.. */}
-            {project.stack.length > 3 && (
-              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-500 border border-neutral-200 dark:border-neutral-700/60">
-                +{project.stack.length - 3}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* action buttons */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => {
-              setShowEditModal(true);
-            }}
-            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
-          >
-            Edit project
-          </button>
-          <button
-            onClick={handleTogglePublic}
-            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
-          >
-            {project.isPublic ? "Make private" : "Make public"}
-          </button>
-          {project.status === "in-progress" && (
-            <button
-              onClick={handleMarkComplete}
-              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
-            >
-              Mark complete
-            </button>
-          )}
-          <button
-            onClick={handleAddLog}
-            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-neutral-700 dark:hover:bg-neutral-200 transition-colors"
-          >
-            + Add log
-          </button>
-          {project.status === "complete" && (
-            <button
-              onClick={() => setShowArtifactModal(true)}
-              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors flex items-center gap-1.5"
-            >
-              <Sparkles size={12} />
-              Generate Artifact
-            </button>
-          )}
-        </div>
-      </div>
-      <div className="flex items-center gap-1 px-7 py-2 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 shrink-0">
+      <ProjectTopBar project={project} activeTab="logs">
         <button
-          onClick={() => navigate(`/Project/${id}`)}
-          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white transition-colors"
+          onClick={() => setShowEditModal(true)}
+          className="px-2.5 py-1.5 text-xs font-medium rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
         >
-          Logs
+          Edit
         </button>
         <button
-          onClick={() => navigate(`/Project/${id}/artifacts`)}
-          className="px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          onClick={handleTogglePublic}
+          className="px-2.5 py-1.5 text-xs font-medium rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
         >
-          ✨ Artifacts
+          {project.isPublic ? "Make private" : "Make public"}
         </button>
-      </div>
+        {project.status === "in-progress" && (
+          <button
+            onClick={handleMarkComplete}
+            className="px-2.5 py-1.5 text-xs font-medium rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          >
+            Mark complete
+          </button>
+        )}
+        <button
+          onClick={handleAddLog}
+          className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-neutral-700 dark:hover:bg-neutral-200 transition-colors"
+        >
+          + Add log
+        </button>
+        {project.status === "complete" && (
+          <button
+            onClick={() => setShowArtifactModal(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors"
+          >
+            <Sparkles size={12} />
+            Generate
+          </button>
+        )}
+      </ProjectTopBar>
       {/* body — two columns */}
       <div className="flex flex-1 overflow-hidden gap-2 p-2">
         {/* left column */}

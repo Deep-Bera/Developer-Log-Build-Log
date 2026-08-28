@@ -1,21 +1,15 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import axios from "../../axiosConfig/axiosConfig";
 import useAuthError from "../../customHook/AuthErrorHook";
 import ArtifactModal from "../artifacts/ArtifactModal";
 import ArtifactList from "../artifacts/ArtifactList";
 import ArtifactViewer from "../artifacts/ArtifactViewer";
-import {
-  ChevronLeft,
-  Loader2,
-  FileText,
-  MessageCircle,
-  Sparkles,
-} from "lucide-react";
+import ProjectTopBar from "../ProjectTopbar";
+import { Loader2, FileText, MessageCircle, Sparkles } from "lucide-react";
 
 export default function ProjectArtifacts() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [artifacts, setArtifacts] = useState([]);
   const [selectedArtifact, setSelectedArtifact] = useState(null);
@@ -140,82 +134,17 @@ export default function ProjectArtifacts() {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-neutral-50 dark:bg-neutral-950">
       {/* topbar */}
-      <div className="flex items-center justify-between px-7 py-4 bg-white dark:bg-neutral-900 shrink-0 shadow-sm rounded-xl">
-        <div
-          onClick={() => navigate("/Dashboard")}
-          className="inline-flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-600 hover:text-neutral-400 dark:hover:text-neutral-300 cursor-pointer mb-3 transition-colors"
-        >
-          <ChevronLeft size={13} />
-          <span>Projects</span>
-        </div>
-
-        <div>
-          <div className="flex items-center gap-2.5 mb-1.5">
-            <span className="text-base font-semibold text-neutral-900 dark:text-white capitalize">
-              {project.name}
-            </span>
-            <span
-              className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full ${
-                project.status === "in-progress"
-                  ? "bg-[#faeeda] text-[#854f0b]"
-                  : "bg-[#eaf3de] text-[#27500a]"
-              }`}
-            >
-              {project.status === "in-progress" ? "Building" : "Complete"}
-            </span>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-xs text-neutral-400 dark:text-neutral-500">
-              Started{" "}
-              {new Date(project.startDate).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </span>
-            <span className="text-xs text-neutral-400 dark:text-neutral-500">
-              {project.logCount} entries
-            </span>
-            {project.stack.map((tech) => (
-              <span
-                key={tech}
-                className="text-[11px] px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
-              >
-                {tech}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* action buttons */}
-        <div className="flex items-center gap-2 shrink-0">
-          {project.status === "complete" && (
-            <button
-              onClick={() => setShowArtifactModal(true)}
-              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors flex items-center gap-1.5"
-            >
-              <Sparkles size={12} />
-              Generate Artifact
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* tabs */}
-      <div className="flex items-center gap-1 px-7 py-2 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 shrink-0">
-        <button
-          onClick={() => navigate(`/Project/${id}`)}
-          className="px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-        >
-          Logs
-        </button>
-        <button
-          onClick={() => navigate(`/Project/${id}/artifacts`)}
-          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white transition-colors"
-        >
-          ✨ Artifacts {artifacts.length > 0 && `(${artifacts.length})`}
-        </button>
-      </div>
+      <ProjectTopBar project={project} activeTab="artifacts">
+        {project.status === "complete" && (
+          <button
+            onClick={() => setShowArtifactModal(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors"
+          >
+            <Sparkles size={11} />
+            Generate
+          </button>
+        )}
+      </ProjectTopBar>
 
       {/* body — two columns */}
       <div className="flex flex-1 overflow-hidden gap-2 p-2">
