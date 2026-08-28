@@ -185,7 +185,7 @@ export default function ProjectLogs() {
         {project.status === "complete" && (
           <button
             onClick={() => setShowArtifactModal(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white cursor-pointer hover:bg-indigo-500 transition-colors"
           >
             <Sparkles size={12} />
             Generate
