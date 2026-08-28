@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @variant dark (&:where(.dark, .dark *));
+@plugin "@tailwindcss/typography";
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }

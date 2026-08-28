@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import SideBar from "./components/SideBar";
 import ProjectLogs from "./components/logsPage/ProjectLogs";
 import PublicProjectView from "./components/publicLogs/PublicProjectView";
+import ProjectArtifacts from "./components/artifacts/ProjectArtifacts";
 
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useEffect, useContext } from "react";
@@ -96,7 +97,14 @@ function App() {
             }
           />
           <Route path="/public/:id" element={<PublicProjectView />} />
-
+          <Route
+            path="/Project/:id/artifacts"
+            element={
+              <ProtectedRoute>
+                <ProjectArtifacts />
+              </ProtectedRoute>
+            }
+          />
           {/* to prevent from going to random routes which is not present .... */}
           <Route
             path="*"

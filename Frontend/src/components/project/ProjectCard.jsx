@@ -29,7 +29,7 @@ export default function ProjectCard({
   }, []);
 
   return (
-    <div className="group relative bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-3 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-1 hover:border-neutral-300 dark:hover:border-neutral-600 hover:shadow-xl dark:hover:shadow-xl dark:hover:shadow-emerald-100/10">
+    <div className="group relative bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-3 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-1 hover:border-neutral-300 dark:hover:border-neutral-600 hover:shadow-xl dark:hover:shadow-lg dark:hover:shadow-emerald-100/10">
       {/* top row — name, stack, badge, menu */}
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1 min-w-0 pr-2">
@@ -46,7 +46,7 @@ export default function ProjectCard({
               .map((tech, idx) => (
                 <span
                   key={idx}
-                  className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700/60 uppercase"
+                  className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700/60 uppercase"
                 >
                   {tech}
                 </span>

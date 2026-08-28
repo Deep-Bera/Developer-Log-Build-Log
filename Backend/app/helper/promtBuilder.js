@@ -51,9 +51,13 @@ The questions should cover:
 - Learnings from the project
 - Wins and achievements
 
-Format each Q&A exactly like this:
+Format each Q&A exactly like this with a new line between Q and A:
+
 Q: [question]
+
 A: [detailed answer based on the logs]
+
+---
 
 Project Details:
 ${projectInfo}

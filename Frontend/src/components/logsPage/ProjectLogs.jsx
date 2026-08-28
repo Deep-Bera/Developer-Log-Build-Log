@@ -5,7 +5,8 @@ import useAuthError from "../../customHook/AuthErrorHook";
 import LogList from "./LogList";
 import LogDetail from "./LogsDetails";
 import ProjectModal from "../project/projectModal";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import ArtifactModal from "../artifacts/ArtifactModal";
+import { ChevronLeft, Loader2, Sparkles } from "lucide-react";
 
 export default function ProjectLogs() {
   const { id } = useParams();
@@ -20,6 +21,8 @@ export default function ProjectLogs() {
   const [sort, setSort] = useState("desc");
   const [refresh, setRefresh] = useState(0);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showArtifactModal, setShowArtifactModal] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const headers = { Authorization: `${localStorage.getItem("token")}` };
   const handleAuthError = useAuthError();
@@ -120,6 +123,20 @@ export default function ProjectLogs() {
       });
   };
 
+  const handleGenerate = (type) => {
+    setIsGenerating(true);
+    axios
+      .post(`/api/artifacts/${id}`, { type }, { headers })
+      .then(() => {
+        setShowArtifactModal(false);
+        navigate(`/Project/${id}/artifacts`);
+      })
+      .catch((err) => {
+        handleAuthError(err);
+        console.log(err.response?.data);
+      })
+      .finally(() => setIsGenerating(false));
+  };
   const handleAddLog = () => {
     setSelectedLog(null);
     setIsAdding(true);
@@ -158,7 +175,7 @@ export default function ProjectLogs() {
       <div className="flex items-center justify-between px-7 py-4 bg-white dark:bg-neutral-900 shrink-0 shadow-sm rounded-xl">
         <div
           onClick={() => navigate("/Dashboard")}
-          className="inline-flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-600 hover:text-neutral-400 dark:hover:text-neutral-300 cursor-pointer mb-3 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-550 hover:text-neutral-400 dark:hover:text-neutral-300 cursor-pointer mb-3 transition-colors"
         >
           <ChevronLeft size={13} />
           <span>Projects</span>
@@ -191,14 +208,27 @@ export default function ProjectLogs() {
             <span className="text-xs text-neutral-400 dark:text-neutral-500">
               {project.logCount} entries
             </span>
-            {project.stack.map((tech) => (
-              <span
-                key={tech}
-                className="text-[11px] px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
-              >
-                {tech}
+
+            {(Array.isArray(project.stack)
+              ? project.stack
+              : (project.stack || "").split(",").map((s) => s.trim())
+            )
+              .slice(0, 3)
+              .map((tech, idx) => (
+                <span
+                  key={idx}
+                  className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700/60 uppercase"
+                >
+                  {tech}
+                </span>
+              ))}
+
+            {/* show +N if there are more than 3.. */}
+            {project.stack.length > 3 && (
+              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-500 border border-neutral-200 dark:border-neutral-700/60">
+                +{project.stack.length - 3}
               </span>
-            ))}
+            )}
           </div>
         </div>
 
@@ -232,9 +262,31 @@ export default function ProjectLogs() {
           >
             + Add log
           </button>
+          {project.status === "complete" && (
+            <button
+              onClick={() => setShowArtifactModal(true)}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors flex items-center gap-1.5"
+            >
+              <Sparkles size={12} />
+              Generate Artifact
+            </button>
+          )}
         </div>
       </div>
-
+      <div className="flex items-center gap-1 px-7 py-2 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 shrink-0">
+        <button
+          onClick={() => navigate(`/Project/${id}`)}
+          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white transition-colors"
+        >
+          Logs
+        </button>
+        <button
+          onClick={() => navigate(`/Project/${id}/artifacts`)}
+          className="px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+        >
+          ✨ Artifacts
+        </button>
+      </div>
       {/* body — two columns */}
       <div className="flex flex-1 overflow-hidden gap-2 p-2">
         {/* left column */}
@@ -318,6 +370,13 @@ export default function ProjectLogs() {
           project={project}
           onClose={() => setShowEditModal(false)}
           onSuccess={handleProjectUpdated}
+        />
+      )}
+      {showArtifactModal && (
+        <ArtifactModal
+          onClose={() => setShowArtifactModal(false)}
+          onGenerate={handleGenerate}
+          isGenerating={isGenerating}
         />
       )}
     </div>
