@@ -36,7 +36,7 @@ ${projectInfo}
 Developer Logs:
 ${logsText}
 
-Generate only the markdown content, no extra explanation.
+Generate only the raw markdown content. Do not wrap it in code fences or backticks. Start directly with the # title.
     `.trim();
   }
 
