@@ -19,7 +19,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", async (req, res) => {
-  res.status(200).json("hello user");
+  res.status(200).json("Welcome to Build_Log");
 });
 // *-------------------------------------User Routes-----------------------------//
 app.use("/api/users", userRoute);
