@@ -1,7 +1,8 @@
 import Artifact from "../models/artifactModel.js";
 import Project from "../models/projectModel.js";
 import Log from "../models/logModel.js";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import buildPrompt from "../helper/promtBuilder.js";
 
 const artifactController = {};
@@ -16,8 +17,9 @@ artifactController.generateArtifact = async (req, res) => {
 
   try {
     // console.log("Key loaded:", process.env.GEMINI_API_KEY ? "YES" : "NO");
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    // const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    // const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     // only allow generation on completed projects..
     const project = await Project.findOne({
       _id: projectId,
@@ -55,8 +57,13 @@ artifactController.generateArtifact = async (req, res) => {
     const prompt = buildPrompt(type, project, logs);
 
     // call gemini..
-    const result = await model.generateContent(prompt);
-    const content = result.response.text();
+    // const result = await model.generateContent(prompt);
+    // const content = result.response.text();
+    const result = await genAI.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+    const content = result.text;
     // console.log(content);
     // save the artifact..
     const artifact = await Artifact.create({

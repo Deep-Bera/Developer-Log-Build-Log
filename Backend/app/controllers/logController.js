@@ -1,5 +1,6 @@
 import Log from "../models/logModel.js";
 import Project from "../models/projectModel.js";
+import generateEmbedding from "../helper/embeddingGenerator.js";
 import { validationResult } from "express-validator";
 
 const logsController = {};
@@ -25,7 +26,7 @@ logsController.createLog = async (req, res) => {
       content,
       tags,
     });
-
+    log.embedding = await generateEmbedding(content);
     await log.save();
 
     // increment logCount on the project
@@ -121,7 +122,10 @@ logsController.updateLog = async (req, res) => {
     }
 
     if (entryType) log.entryType = entryType;
-    if (content) log.content = content;
+    if (content) {
+      log.content = content;
+      log.embedding = await generateEmbedding(content);
+    }
     if (tags) log.tags = tags;
 
     await log.save();

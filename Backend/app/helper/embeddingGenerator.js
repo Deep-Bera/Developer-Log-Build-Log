@@ -1,8 +1,13 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 export default async function generateEmbedding(text) {
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
-  const result = await model.embedContent(text);
-  return result.embedding.values;
+  const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const result = await genAI.models.embedContent({
+    model: "gemini-embedding-001",
+    contents: text,
+    config: {
+      outputDimensionality: 768,
+    },
+  });
+  return result.embeddings[0].values;
 }
