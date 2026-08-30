@@ -44,8 +44,10 @@ artifactController.generateArtifact = async (req, res) => {
       });
     }
 
-    // fetch all logs for this project..
-    const logs = await Log.find({ projectId });
+    // Fetch lightweight plain JS log objects with essential fields only, bypassing heavy embeddings for optimal performanc
+    const logs = await Log.find({ projectId })
+      .select("message level timestamp -_id")
+      .lean();
 
     if (logs.length === 0) {
       return res
@@ -120,7 +122,7 @@ artifactController.updateArtifact = async (req, res) => {
   const { projectId, artifactId } = req.params;
   const { content } = req.body;
 
-  if (!content || content.trim() === "") {
+  if (!content || typeof content !== "string" || content.trim() === "") {
     return res.status(400).json({ message: "Content cannot be empty" });
   }
 
