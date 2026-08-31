@@ -26,7 +26,7 @@ askController.askAI = async (req, res) => {
           path: "embedding",
           queryVector,
           numCandidates: 100,
-          limit: 5,
+          limit: 8,
           filter: {
             userId: { $eq: new mongoose.Types.ObjectId(req.userId) },
           },
