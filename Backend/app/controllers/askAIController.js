@@ -80,19 +80,28 @@ Answer:`;
     });
 
     const answer = result.text;
-
+    const noInfoRegex =
+      /do not contain|no information|could not find|not mentioned/i;
+    const finalSources = noInfoRegex.test(answer)
+      ? []
+      : relevantLogs.map((log) => ({
+          logId: log._id,
+          projectId: log.projectId,
+          entryType: log.entryType,
+          createdAt: log.createdAt,
+          score: log.score,
+        }));
     res.status(200).json({
       answer,
-      sources: relevantLogs.map((log) => ({
-        logId: log._id,
-        projectId: log.projectId,
-        entryType: log.entryType,
-        createdAt: log.createdAt,
-        score: log.score,
-      })),
+      sources: finalSources,
     });
   } catch (err) {
-    console.log(err.message);
+    console.log("in the ask AI controller ", err.message);
+    if (err.message?.includes("503") || err.message?.includes("UNAVAILABLE")) {
+      return res.status(503).json({
+        message: "AI service is currently busy. Please try again in a moment.",
+      });
+    }
     res.status(500).json({ message: err.message });
   }
 };
