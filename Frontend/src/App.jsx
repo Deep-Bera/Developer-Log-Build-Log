@@ -8,6 +8,7 @@ import SideBar from "./components/SideBar";
 import ProjectLogs from "./components/logsPage/ProjectLogs";
 import PublicProjectView from "./components/publicLogs/PublicProjectView";
 import ProjectArtifacts from "./components/artifacts/ProjectArtifacts";
+import AskAI from "./components/AskAIChat/AskAI";
 
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useEffect, useContext } from "react";
@@ -102,6 +103,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProjectArtifacts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/AskAI"
+            element={
+              <ProtectedRoute>
+                <AskAI />
               </ProtectedRoute>
             }
           />
