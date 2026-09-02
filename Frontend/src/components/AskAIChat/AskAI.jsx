@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Sparkles, Send } from "lucide-react";
+import { Sparkles, Send, Trash2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import axios from "../../axiosConfig/axiosConfig";
 import useAuthError from "../../customHook/AuthErrorHook";
@@ -11,6 +11,8 @@ const STORAGE_KEY = "askai_history";
 export default function AskAI() {
   const [query, setQuery] = useState("");
   const [pendingQuestion, setPendingQuestion] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const bottomRef = useRef(null);
   const [history, setHistory] = useState(() => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
@@ -19,8 +21,6 @@ export default function AskAI() {
       return [];
     }
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const bottomRef = useRef(null);
   const handleAuthError = useAuthError();
 
   useEffect(() => {
@@ -88,30 +88,55 @@ export default function AskAI() {
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
+      e.preventDefault(); //to prevent adding a new line in the text area not prevent the page reload
       handleAsk();
     }
   };
+  //to grow the text input area if the input text increases....
   const handleTextChange = (e) => {
     setQuery(e.target.value);
     e.target.style.height = "auto";
     e.target.style.height = `${e.target.scrollHeight}px`;
   };
 
+  const handleClearChat = () => {
+    sessionStorage.removeItem(STORAGE_KEY);
+    setHistory([]);
+  };
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-neutral-50 dark:bg-neutral-950">
       {/* Top Header — Full Width with Glass Fade */}
-      <div className="w-full bg-white dark:bg-neutral-900 border-b border-neutral-200/80 dark:border-neutral-800 shrink-0 shadow-xs px-6 py-3">
-        <h1 className="text-base font-semibold text-neutral-900 dark:text-white">
-          Ask AI
-        </h1>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-          Ask anything about your logs across all projects
-        </p>
-      </div>
+      <header className="w-full bg-white dark:bg-neutral-900 border-b border-neutral-200/80 dark:border-neutral-800 shrink-0 shadow-xs px-6 py-3 flex items-center justify-between">
+        {/* Left Section: Title & Subtitle */}
+        <div>
+          <h1 className="text-base font-semibold text-neutral-900 dark:text-white">
+            Ask AI
+          </h1>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+            Ask anything about your logs across all projects
+          </p>
+        </div>
+
+        {/* Right Section: Clear Chat Button */}
+        {history.length > 0 && (
+          <button
+            type="button"
+            onClick={handleClearChat}
+            className="group relative flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-neutral-500 hover:text-red-600 dark:text-neutral-400 dark:hover:text-red-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
+          >
+            <Trash2 size={14} />
+
+            {/* Tooltip Box */}
+            <span className="absolute right-0 top-full mt-1.5 bg-neutral-800 dark:bg-neutral-700 text-white text-[11px] px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none z-20 shadow-md">
+              Clear Chat History
+            </span>
+          </button>
+        )}
+      </header>
 
       {/* Main Scrollable Chat Area — Scrollbar Gutter Stable keeps alignment matched */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 hide-scrollbar">
+      <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 hide-scrollbar">
         <div className="max-w-3xl mx-auto flex flex-col gap-6">
           {history.length === 0 && !isLoading && !pendingQuestion && (
             <div className="flex flex-col items-center justify-center min-h-[45vh] gap-3 text-center my-auto">
@@ -141,7 +166,7 @@ export default function AskAI() {
               </div>
 
               {/* AI Answer Box */}
-              <div className="flex items-start gap-3 bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 p-4 rounded-2xl shadow-xs">
+              <div className="flex items-start gap-3 bg-white dark:bg-neutral-900 border border-neutral-300/80 dark:border-neutral-800 p-4 rounded-2xl shadow-xs">
                 <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center shrink-0 mt-0.5">
                   <Sparkles
                     size={12}
@@ -227,10 +252,10 @@ export default function AskAI() {
 
           <div ref={bottomRef} />
         </div>
-      </div>
+      </main>
 
       {/* Sticky Bottom Dock — Matches exact padding and scrollbar spacing */}
-      <div className="bg-neutral-50/80 dark:bg-neutral-950/80 backdrop-blur-md shrink-0 pt-0.5 pb-3 px-4 sm:px-6 ">
+      <footer className="bg-neutral-50/80 dark:bg-neutral-950/80 backdrop-blur-md shrink-0 pt-0.5 pb-3 px-4 sm:px-6 ">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-3 bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 rounded-xl px-3.5 py-2 shadow-xs focus-within:border-indigo-500/70 dark:focus-within:border-indigo-500/70 transition-all">
             <textarea
@@ -264,7 +289,7 @@ export default function AskAI() {
             for new line
           </p>
         </div>
-      </div>
+      </footer>
     </div>
   );
 }

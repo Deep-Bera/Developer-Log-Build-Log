@@ -13,6 +13,7 @@ export default function SkeletonCard() {
         <div className="h-3.5 w-1/3 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse" />
         <div className="h-3 w-full bg-neutral-100 dark:bg-neutral-800/60 rounded animate-pulse" />
         <div className="h-3 w-5/6 bg-neutral-100 dark:bg-neutral-800/60 rounded animate-pulse" />
+        <div className="h-3 w-5/6 bg-neutral-100 dark:bg-neutral-800/60 rounded animate-pulse" />
       </div>
     </div>
   );

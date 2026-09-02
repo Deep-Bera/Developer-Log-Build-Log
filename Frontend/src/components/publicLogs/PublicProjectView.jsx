@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "../../axiosConfig/axiosConfig";
+// import ProjectTopbar from "../ProjectTopbar";
 import {
   GitBranch,
   AlertTriangle,
@@ -109,37 +110,21 @@ export default function PublicProjectView() {
         <p className="text-sm">Loading public projects logs...</p>
       </div>
     );
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-neutral-50 dark:bg-neutral-950">
-      {/* topbar */}
-      {/* <div className="flex items-center px-7 py-3 shrink-0 bg-white dark:bg-neutral-900">
-        <div className="flex items-center gap-2 text-sm text-neutral-400 dark:text-neutral-500">
-          <span
-            onClick={() => navigate("/PublicFeed")}
-            className="cursor-pointer hover:text-neutral-900 dark:hover:text-white transition-colors"
-          >
-            Public Feed
-          </span>
-          <span className="text-2xl text-neutral-200 dark:text-neutral-700">
-            ›
-          </span>
-          <span className="text-neutral-900 dark:text-white font-medium">
-            {project.name
-              .split(" ")
-              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-              .join(" ")}
-          </span>
-        </div>
-      </div> */}
-
       {/* project header — full width, read only, no action buttons */}
       <div className="flex items-center justify-between px-7 py-4 bg-white dark:bg-neutral-900 shrink-0 shadow-sm rounded-xl ">
-        <div
-          onClick={() => navigate("/PublicFeed")}
-          className="inline-flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-600 hover:text-neutral-400 dark:hover:text-neutral-300 cursor-pointer mb-3 transition-colors"
-        >
-          <ChevronLeft size={13} />
-          <span>Public Feed</span>
+        <div className="relative group shrink-0">
+          <button
+            onClick={() => navigate("/PublicFeed")}
+            className="flex items-center justify-center w-7 h-7 rounded-lg text-neutral-400 dark:text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <span className="absolute left-9 top-1/2 -translate-y-1/2 bg-neutral-800 dark:bg-neutral-700 text-white text-[11px] px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+            Public Feed
+          </span>
         </div>
         <div>
           <div className="flex items-center gap-2.5 mb-1.5">
