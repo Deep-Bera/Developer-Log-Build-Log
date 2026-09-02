@@ -5,7 +5,16 @@ import ProjectCard from "../components/project/ProjectCard";
 import ProjectModal from "../components/project/projectModal";
 import useAuthError from "../customHook/AuthErrorHook";
 
-import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Plus,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  FolderGit2,
+  Hammer,
+  CheckCircle2,
+  Globe,
+} from "lucide-react";
 
 export default function Dashboard() {
   const [projects, setProjects] = useState([]);
@@ -119,24 +128,40 @@ export default function Dashboard() {
 
   const stats = [
     {
-      label: "Total projects",
-      value: projects.length,
-      sub: `${projects.filter((p) => p.status === "in-progress").length} active`,
+      title: "Total projects",
+      value: 3,
+      subtitle: "2 active",
+      icon: FolderGit2,
+      iconColor: "text-blue-600 dark:text-blue-400",
+      iconBg:
+        "bg-blue-50 dark:bg-blue-950/50 border-blue-100 dark:border-blue-900/50",
     },
     {
-      label: "In progress",
-      value: projects.filter((p) => p.status === "in-progress").length,
-      sub: "building now",
+      title: "In progress",
+      value: 2,
+      subtitle: "building now",
+      icon: Hammer,
+      iconColor: "text-amber-600 dark:text-amber-400",
+      iconBg:
+        "bg-amber-50 dark:bg-amber-950/50 border-amber-100 dark:border-amber-900/50",
     },
     {
-      label: "Complete",
-      value: projects.filter((p) => p.status === "complete").length,
-      sub: "shipped",
+      title: "Complete",
+      value: 1,
+      subtitle: "shipped",
+      icon: CheckCircle2,
+      iconColor: "text-emerald-600 dark:text-emerald-400",
+      iconBg:
+        "bg-emerald-50 dark:bg-emerald-950/50 border-emerald-100 dark:border-emerald-900/50",
     },
     {
-      label: "Public projects",
-      value: projects.filter((p) => p.isPublic).length,
-      sub: "visible to all",
+      title: "Public projects",
+      value: 1,
+      subtitle: "visible to all",
+      icon: Globe,
+      iconColor: "text-indigo-600 dark:text-indigo-400",
+      iconBg:
+        "bg-indigo-50 dark:bg-indigo-950/50 border-indigo-100 dark:border-indigo-900/50",
     },
   ];
 
@@ -165,22 +190,37 @@ export default function Dashboard() {
       <div className="flex-1 overflow-hidden flex flex-col px-7 py-4">
         {/* stats row */}
         <div className="shrink-0 grid grid-cols-4 gap-3 mb-4">
-          {stats.map((s) => (
-            <div
-              key={s.label}
-              className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl px-4 py-3.5"
-            >
-              <p className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">
-                {s.label}
-              </p>
-              <p className="text-[22px] font-medium text-neutral-900 dark:text-white leading-none mb-1">
-                {s.value}
-              </p>
-              <p className="text-[11px] text-neutral-400 dark:text-neutral-500">
-                {s.sub}
-              </p>
-            </div>
-          ))}
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={stat.title}
+                className="group relative p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 shadow-sm dark:shadow-emerald-500/10 hover:shadow-md dark:hover:shadow-emerald-500/20 hover:border-neutral-300 dark:hover:border-neutral-700 transition-all duration-200 flex flex-col justify-between"
+              >
+                {/* Top row: Label + Icon Pill */}
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                    {stat.title}
+                  </span>
+                  <div
+                    className={`flex items-center justify-center w-8 h-8 rounded-xl border ${stat.iconBg} ${stat.iconColor} transition-transform duration-200 group-hover:scale-105`}
+                  >
+                    <Icon size={16} />
+                  </div>
+                </div>
+
+                {/* Bottom row: Value + Subtitle */}
+                <div className="flex items-baseline justify-between">
+                  <span className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+                    {stat.value}
+                  </span>
+                  <span className="text-[11px] font-medium text-neutral-400 dark:text-neutral-500">
+                    {stat.subtitle}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* search + filters */}
