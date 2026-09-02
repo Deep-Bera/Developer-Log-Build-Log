@@ -115,59 +115,60 @@ export default function PublicProjectView() {
     <div className="flex flex-col h-screen overflow-hidden bg-neutral-50 dark:bg-neutral-950">
       {/* project header — full width, read only, no action buttons */}
       <div className="flex items-center justify-between px-7 py-4 bg-white dark:bg-neutral-900 shrink-0 shadow-sm rounded-xl ">
-        <div className="relative group shrink-0">
-          <button
-            onClick={() => navigate("/PublicFeed")}
-            className="flex items-center justify-center w-7 h-7 rounded-lg text-neutral-400 dark:text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <span className="absolute left-9 top-1/2 -translate-y-1/2 bg-neutral-800 dark:bg-neutral-700 text-white text-[11px] px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-            Public Feed
-          </span>
-        </div>
-        <div>
-          <div className="flex items-center gap-2.5 mb-1.5">
-            <span className="text-base font-semibold text-neutral-900 dark:text-white">
-              {project.name
-                .split(" ")
-                .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-                .join(" ")}
+        <div className="flex items-center gap-4">
+          <div className="relative group shrink-0">
+            <button
+              onClick={() => navigate("/PublicFeed")}
+              className="flex items-center justify-center w-7 h-7 rounded-lg text-neutral-400 dark:text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <span className="absolute left-9 top-1/2 -translate-y-1/2 bg-neutral-800 dark:bg-neutral-700 text-white text-[11px] px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+              Public Feed
             </span>
-            <span
-              className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full
+          </div>
+          <div>
+            <div className="flex items-center gap-2.5 mb-1.5">
+              <span className="text-base font-semibold text-neutral-900 dark:text-white">
+                {project.name
+                  .split(" ")
+                  .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                  .join(" ")}
+              </span>
+              <span
+                className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full
               ${
                 project.status === "in-progress"
                   ? "bg-[#faeeda] text-[#854f0b]"
                   : "bg-[#eaf3de] text-[#27500a]"
               }`}
-            >
-              {project.status === "in-progress" ? "Building" : "Complete"}
-            </span>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-xs text-neutral-400 dark:text-neutral-500">
-              Started{" "}
-              {new Date(project.startDate).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </span>
-            <span className="text-xs text-neutral-400 dark:text-neutral-500">
-              {project.logCount} entries
-            </span>
-            {project.stack.map((tech) => (
-              <span
-                key={tech}
-                className="text-[11px] px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
               >
-                {tech}
+                {project.status === "in-progress" ? "Building" : "Complete"}
               </span>
-            ))}
+            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-neutral-400 dark:text-neutral-500">
+                Started{" "}
+                {new Date(project.startDate).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>
+              <span className="text-xs text-neutral-400 dark:text-neutral-500">
+                {project.logCount} entries
+              </span>
+              {project.stack.map((tech) => (
+                <span
+                  key={tech}
+                  className="text-[11px] px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
+                >
+                  {tech}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
-
         {/* read only badge */}
         <span className="text-[11px] px-2.5 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500">
           Read only
