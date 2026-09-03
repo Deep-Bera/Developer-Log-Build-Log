@@ -5,6 +5,10 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
+import morgan from "morgan";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 import configDB from "./app/config/db.js";
 
 import userRoute from "./app/Routes/userRoutes.js";
@@ -18,6 +22,25 @@ configDB();
 
 app.use(cors());
 app.use(express.json());
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const accessLogStream = fs.createWriteStream(
+  path.join(__dirname, "access.log"),
+  { flags: "a" },
+);
+app.use(
+  morgan(
+    (tokens, req, res) =>
+      JSON.stringify({
+        method: tokens.method(req, res),
+        url: tokens.url(req, res),
+        status: Number(tokens.status(req, res)),
+        responseTime: `${tokens["response-time"](req, res)}ms`,
+        timestamp: tokens.date(req, res, "iso"),
+      }),
+    { stream: accessLogStream },
+  ),
+);
 
 app.get("/", async (req, res) => {
   res.status(200).json("Welcome to Build_Log");
@@ -28,9 +51,9 @@ app.use("/api/users", userRoute);
 app.use("/api/projects", projectRoute);
 // *-------------------------------------Logs Routes-----------------------------//
 app.use("/api/logs", logsRoute);
-// *-----------------------------------artifact Routes---------------------------//
+// *-------------------------------------artifact Routes-------------------------//
 app.use("/api/artifacts", artifactRoute);
-//*------------------------------------Ask AI Routes-----------------------------//
+//*--------------------------------------Ask AI Routes---------------------------//
 app.use("/api/ask", askRoute);
 
 app.listen(port, () => {

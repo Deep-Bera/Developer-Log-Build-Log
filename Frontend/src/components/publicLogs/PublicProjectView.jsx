@@ -114,7 +114,7 @@ export default function PublicProjectView() {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-neutral-50 dark:bg-neutral-950">
       {/* project header — full width, read only, no action buttons */}
-      <div className="flex items-center justify-between px-7 py-4 bg-white dark:bg-neutral-900 shrink-0 shadow-sm rounded-xl ">
+      <div className="flex items-center justify-between px-7 py-4 bg-white dark:bg-neutral-900 shrink-0 shadow-sm ">
         <div className="flex items-center gap-4">
           <div className="relative group shrink-0">
             <button

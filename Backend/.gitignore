@@ -1,3 +1,4 @@
 node_modules
 .env
 testVectorSearch.js
+access.log
