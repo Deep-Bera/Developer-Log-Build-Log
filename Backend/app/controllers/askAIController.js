@@ -1,4 +1,5 @@
 import Log from "../models/logModel.js";
+import Project from "../models/projectModel.js";
 import generateEmbedding from "../helper/embeddingGenerator.js";
 import { GoogleGenAI } from "@google/genai";
 import mongoose from "mongoose";
@@ -15,10 +16,8 @@ askController.askAI = async (req, res) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
   try {
-    // embed the user question to vectors .....
     const queryVector = await generateEmbedding(query);
 
-    // run vector search — scoped to this user's logs only..
     const relevantLogs = await Log.aggregate([
       {
         $vectorSearch: {
@@ -51,7 +50,6 @@ askController.askAI = async (req, res) => {
       });
     }
 
-    // build context from retrieved logs..
     const context = relevantLogs
       .map(
         (log, i) =>
@@ -60,7 +58,6 @@ ${log.content}`,
       )
       .join("\n\n");
 
-    // build the prompt..
     const prompt = `You are an AI assistant helping a developer reflect on their project journey.
 Based on the following log entries from the developer's build log, answer their question concisely and accurately.
 Only use information from the provided logs. If the logs don't contain enough information, say so.
@@ -72,7 +69,6 @@ ${context}
 
 Answer:`;
 
-    // call gemini..
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const result = await genAI.models.generateContent({
       model: "gemini-2.5-flash",
@@ -91,16 +87,275 @@ Answer:`;
           createdAt: log.createdAt,
           score: log.score,
         }));
-    res.status(200).json({
-      answer,
-      sources: finalSources,
-    });
+
+    res.status(200).json({ answer, sources: finalSources });
   } catch (err) {
     console.log("in the ask AI controller ", err.message);
     if (err.message?.includes("503") || err.message?.includes("UNAVAILABLE")) {
       return res.status(503).json({
         message: "AI service is currently busy. Please try again in a moment.",
       });
+    }
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// tool definitions for the create log flow..
+const tools = [
+  {
+    functionDeclarations: [
+      {
+        name: "get_git_diff",
+        description:
+          "Gets the latest git diff from the user's local repository",
+        parameters: { type: "object", properties: {}, required: [] },
+      },
+      {
+        name: "create_log",
+        description: "Creates a log entry in the Build Log platform",
+        parameters: {
+          type: "object",
+          properties: {
+            projectId: {
+              type: "string",
+              description: "The project ID to attach the log to",
+            },
+            entryType: {
+              type: "string",
+              enum: ["Decision", "Blocker", "Win", "Learn"],
+              description: "Type of log entry",
+            },
+            content: {
+              type: "string",
+              description: "The log content describing what happened",
+            },
+            tags: {
+              type: "array",
+              items: { type: "string" },
+              description: "Relevant tags for this log entry",
+            },
+          },
+          required: ["projectId", "entryType", "content", "tags"],
+        },
+      },
+    ],
+  },
+];
+
+// helper — find a functionCall part anywhere in the parts array..
+function findFunctionCall(parts) {
+  return parts?.find((p) => p.functionCall) || null;
+}
+
+// first turn — send query to gemini with tools, detect if it wants get_git_diff..
+askController.askAIWithTools = async (req, res) => {
+  const { query } = req.body;
+
+  if (!query || query.trim() === "") {
+    return res.status(400).json({ message: "Query cannot be empty" });
+  }
+  if (!req.userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  try {
+    const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+    // fetch user's projects so gemini knows which ones exist..
+    const projects = await Project.find({ userId: req.userId }).select(
+      "_id name",
+    );
+
+    if (projects.length === 0) {
+      return res.status(200).json({
+        type: "answer",
+        answer:
+          "You don't have any projects yet. Create a project first before logging.",
+        sources: [],
+      });
+    }
+
+    const systemPrompt = `You are an AI assistant for Build Log, a developer journaling platform.
+The user wants to create a log entry from their latest git commit.
+Available projects: ${projects.map((p) => `${p.name} (id: ${p._id})`).join(", ")}
+If the user mentions a project name, match it to the correct project ID.
+Use the get_git_diff tool to read their local git changes, then use create_log to save the entry.`;
+
+    const contents = [
+      {
+        role: "user",
+        parts: [{ text: systemPrompt + "\n\nUser request: " + query }],
+      },
+    ];
+
+    const result = await genAI.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents,
+      config: { tools },
+    });
+
+    const candidate = result.candidates[0];
+    const parts = candidate.content.parts;
+
+    // find functionCall part — don't assume it's always parts[0]..
+    const functionCallPart = findFunctionCall(parts);
+
+    if (
+      functionCallPart &&
+      functionCallPart.functionCall.name === "get_git_diff"
+    ) {
+      return res.status(200).json({
+        type: "tool_call",
+        toolName: "get_git_diff",
+        // pass full chat history including model's function call for second turn..
+        chatHistory: [
+          ...contents,
+          {
+            role: "model",
+            parts: [{ functionCall: functionCallPart.functionCall }],
+          },
+        ],
+      });
+    }
+
+    // gemini responded with text directly..
+    const textPart = parts?.find((p) => p.text);
+    return res.status(200).json({
+      type: "answer",
+      answer: textPart?.text || "Something went wrong, please try again.",
+      sources: [],
+    });
+  } catch (err) {
+    console.log("askAIWithTools error", err.message);
+    if (err.message?.includes("503") || err.message?.includes("UNAVAILABLE")) {
+      return res
+        .status(503)
+        .json({
+          message:
+            "AI service is currently busy. Please try again in a moment.",
+        });
+    }
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// second turn — receives diff from frontend, feeds to gemini, executes create_log..
+askController.askAIToolResult = async (req, res) => {
+  const { diff, chatHistory, projectId } = req.body;
+
+  if (!diff || !chatHistory) {
+    return res.status(400).json({ message: "Missing diff or chat history" });
+  }
+  if (!req.userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  try {
+    // find the functionCall from chat history to get the correct call reference..
+    const modelTurn = chatHistory.find((m) => m.role === "model");
+    const functionCallPart = findFunctionCall(modelTurn?.parts);
+
+    // append the diff as a function response referencing the original call..
+    const updatedHistory = [
+      ...chatHistory,
+      {
+        role: "user",
+        parts: [
+          {
+            functionResponse: {
+              name: "get_git_diff",
+              response: { diff },
+            },
+          },
+        ],
+      },
+    ];
+
+    const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const result = await genAI.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: updatedHistory,
+      config: { tools },
+    });
+
+    const candidate = result.candidates[0];
+    const parts = candidate.content.parts;
+    const functionCallResult = findFunctionCall(parts);
+
+    if (
+      functionCallResult &&
+      functionCallResult.functionCall.name === "create_log"
+    ) {
+      const {
+        projectId: pid,
+        entryType,
+        content,
+        tags,
+      } = functionCallResult.functionCall.args;
+
+      const resolvedProjectId = pid || projectId;
+
+      if (!resolvedProjectId) {
+        return res
+          .status(400)
+          .json({ message: "Could not determine which project to log to" });
+      }
+
+      // verify the project belongs to this user..
+      const project = await Project.findOne({
+        _id: resolvedProjectId,
+        userId: req.userId,
+      });
+
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // create the log..
+      const log = await Log.create({
+        projectId: resolvedProjectId,
+        userId: req.userId,
+        entryType,
+        content,
+        tags,
+      });
+
+      // increment log count..
+      await Project.findByIdAndUpdate(resolvedProjectId, {
+        $inc: { logCount: 1 },
+      });
+
+      // generate embedding asynchronously — don't block the response..
+      generateEmbedding(content)
+        .then((embedding) => {
+          Log.findByIdAndUpdate(log._id, { embedding }).exec();
+        })
+        .catch((err) => console.log("embedding generation error", err.message));
+
+      return res.status(200).json({
+        type: "answer",
+        answer: `Log created successfully — **${entryType}**: ${content.slice(0, 100)}...`,
+        sources: [],
+        log,
+      });
+    }
+
+    // gemini responded with text..
+    const textPart = parts?.find((p) => p.text);
+    return res.status(200).json({
+      type: "answer",
+      answer: textPart?.text || "Something went wrong, please try again.",
+      sources: [],
+    });
+  } catch (err) {
+    console.log("askAIToolResult error", err.message);
+    if (err.message?.includes("503") || err.message?.includes("UNAVAILABLE")) {
+      return res
+        .status(503)
+        .json({
+          message:
+            "AI service is currently busy. Please try again in a moment.",
+        });
     }
     res.status(500).json({ message: err.message });
   }
