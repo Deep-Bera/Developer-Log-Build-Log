@@ -158,27 +158,27 @@ export default function ProjectLogs() {
       <ProjectTopBar project={project} activeTab="logs">
         <button
           onClick={() => setShowEditModal(true)}
-          className="px-2.5 py-1.5 text-xs font-medium rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          className="px-2.5 py-1.5 text-xs font-medium rounded-lg text-neutral-500 cursor-pointer dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
         >
           Edit
         </button>
         <button
           onClick={handleTogglePublic}
-          className="px-2.5 py-1.5 text-xs font-medium rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          className="cursor-pointer px-2.5 py-1.5 text-xs font-medium rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
         >
           {project.isPublic ? "Make private" : "Make public"}
         </button>
         {project.status === "in-progress" && (
           <button
             onClick={handleMarkComplete}
-            className="px-2.5 py-1.5 text-xs font-medium rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            className="px-2.5 py-1.5 text-xs font-medium rounded-lg cursor-pointer text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
           >
             Mark complete
           </button>
         )}
         <button
           onClick={handleAddLog}
-          className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-neutral-700 dark:hover:bg-neutral-200 transition-colors"
+          className=" cursor-pointer px-2.5 py-1.5 text-xs font-medium rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-neutral-700 dark:hover:bg-neutral-200 transition-colors"
         >
           + Add log
         </button>
