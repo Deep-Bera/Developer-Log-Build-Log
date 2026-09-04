@@ -1,6 +1,7 @@
 import Log from "../models/logModel.js";
 import Project from "../models/projectModel.js";
 import generateEmbedding from "../helper/embeddingGenerator.js";
+import findFunctionCall from "../helper/findFunctionCall.js";
 import { GoogleGenAI } from "@google/genai";
 import mongoose from "mongoose";
 
@@ -142,11 +143,6 @@ const tools = [
   },
 ];
 
-// helper — find a functionCall part anywhere in the parts array..
-function findFunctionCall(parts) {
-  return parts?.find((p) => p.functionCall) || null;
-}
-
 // first turn — send query to gemini with tools, detect if it wants get_git_diff..
 askController.askAIWithTools = async (req, res) => {
   const { query } = req.body;
@@ -178,8 +174,18 @@ askController.askAIWithTools = async (req, res) => {
     const systemPrompt = `You are an AI assistant for Build Log, a developer journaling platform.
 The user wants to create a log entry from their latest git commit.
 Available projects: ${projects.map((p) => `${p.name} (id: ${p._id})`).join(", ")}
-If the user mentions a project name, match it to the correct project ID.
-Use the get_git_diff tool to read their local git changes, then use create_log to save the entry.`;
+If the user mentions a project name, match it flexibly — partial matches, different casing, or similar names are fine. Pick the closest match.
+
+Your job:
+1. Use the get_git_diff tool to read the user's local git changes
+2. Analyze the diff carefully — understand what was changed, why it might have been changed, and what kind of work it represents
+3. Based on your analysis, call create_log with:
+   - entryType: one of "Decision", "Blocker", "Win", "Learn" — pick the most appropriate based on the nature of the changes
+   - content: a clear, human-readable summary of what was changed and why — NOT the raw diff. Write it as a developer would describe their work in a journal. 2-4 sentences.
+   - tags: 2-4 relevant lowercase tags based on the files and technologies changed
+   - projectId: the correct project ID from the available projects
+
+Never use raw diff content as the log content. Always summarize it in plain English.`;
 
     const contents = [
       {
@@ -228,12 +234,9 @@ Use the get_git_diff tool to read their local git changes, then use create_log t
   } catch (err) {
     console.log("askAIWithTools error", err.message);
     if (err.message?.includes("503") || err.message?.includes("UNAVAILABLE")) {
-      return res
-        .status(503)
-        .json({
-          message:
-            "AI service is currently busy. Please try again in a moment.",
-        });
+      return res.status(503).json({
+        message: "AI service is currently busy. Please try again in a moment.",
+      });
     }
     res.status(500).json({ message: err.message });
   }
@@ -350,12 +353,9 @@ askController.askAIToolResult = async (req, res) => {
   } catch (err) {
     console.log("askAIToolResult error", err.message);
     if (err.message?.includes("503") || err.message?.includes("UNAVAILABLE")) {
-      return res
-        .status(503)
-        .json({
-          message:
-            "AI service is currently busy. Please try again in a moment.",
-        });
+      return res.status(503).json({
+        message: "AI service is currently busy. Please try again in a moment.",
+      });
     }
     res.status(500).json({ message: err.message });
   }

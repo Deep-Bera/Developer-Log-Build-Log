@@ -19,6 +19,7 @@ app.use(
   cors({
     origin: "*",
     methods: ["GET", "POST", "DELETE", "OPTIONS"],
+    exposedHeaders: ["mcp-session-id"],
   }),
 );
 
@@ -129,7 +130,8 @@ function isInitializeRequest(body) {
 // POST /mcp — handles init, tool calls, notifications..
 app.post("/mcp", async (req, res) => {
   const sessionId = req.headers["mcp-session-id"];
-
+  console.log("Incoming request:", req.body?.method, "sessionId:", sessionId);
+  console.log("Known sessions:", Object.keys(transports));
   try {
     let transport;
 
