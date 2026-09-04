@@ -10,7 +10,6 @@ const artifactController = {};
 artifactController.generateArtifact = async (req, res) => {
   const { projectId } = req.params;
   const { type } = req.body;
-
   if (!type || !["readme", "interview-qa"].includes(type)) {
     return res.status(400).json({ message: "Invalid artifact type" });
   }
@@ -46,7 +45,7 @@ artifactController.generateArtifact = async (req, res) => {
 
     // Fetch lightweight plain JS log objects with essential fields only, bypassing heavy embeddings for optimal performanc
     const logs = await Log.find({ projectId })
-      .select("message level timestamp -_id")
+      .select("content entryType tags createdAt -_id")
       .lean();
 
     if (logs.length === 0) {
