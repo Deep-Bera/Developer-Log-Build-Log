@@ -304,42 +304,16 @@ askController.askAIToolResult = async (req, res) => {
           .json({ message: "Could not determine which project to log to" });
       }
 
-      // verify the project belongs to this user..
-      const project = await Project.findOne({
-        _id: resolvedProjectId,
-        userId: req.userId,
-      });
-
-      if (!project) {
-        return res.status(404).json({ message: "Project not found" });
-      }
-
-      // create the log..
-      const log = await Log.create({
-        projectId: resolvedProjectId,
-        userId: req.userId,
-        entryType,
-        content,
-        tags,
-      });
-
-      // increment log count..
-      await Project.findByIdAndUpdate(resolvedProjectId, {
-        $inc: { logCount: 1 },
-      });
-
-      // generate embedding asynchronously — don't block the response..
-      generateEmbedding(content)
-        .then((embedding) => {
-          Log.findByIdAndUpdate(log._id, { embedding }).exec();
-        })
-        .catch((err) => console.log("embedding generation error", err.message));
-
+      // return create_log args to frontend — let MCP server handle actual creation..
       return res.status(200).json({
-        type: "answer",
-        answer: `Log created successfully — **${entryType}**: ${content.slice(0, 100)}...`,
-        sources: [],
-        log,
+        type: "tool_call",
+        toolName: "create_log",
+        args: {
+          projectId: resolvedProjectId,
+          entryType,
+          content,
+          tags,
+        },
       });
     }
 
@@ -361,4 +335,38 @@ askController.askAIToolResult = async (req, res) => {
   }
 };
 
+// classify user intent using Gemini (Option A)..
+askController.getIntent = async (req, res) => {
+  const { query } = req.body;
+
+  if (!query || query.trim() === "") {
+    return res.status(400).json({ message: "Query cannot be empty" });
+  }
+
+  try {
+    const prompt = `Does the user want to search/ask questions about their existing logs, 
+OR do they want to create/capture a new log from their git repository?
+Reply with exactly one word: "SEARCH" or "CREATE".
+User query: "${query}"`;
+
+    const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const result = await genAI.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+
+    const text = result.text?.trim().toUpperCase() || "";
+    const intent = text.includes("CREATE") ? "CREATE" : "SEARCH";
+
+    return res.status(200).json({ intent });
+  } catch (err) {
+    console.log("Intent classification error:", err.message);
+    const fallback = /create.*log|log.*git|git.*diff|commit/i.test(query)
+      ? "CREATE"
+      : "SEARCH";
+    return res.status(200).json({ intent: fallback });
+  }
+};
+
 export default askController;
+

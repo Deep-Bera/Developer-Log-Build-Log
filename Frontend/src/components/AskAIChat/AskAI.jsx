@@ -4,13 +4,14 @@ import ReactMarkdown from "react-markdown";
 import axios from "../../axiosConfig/axiosConfig";
 import useAuthError from "../../customHook/AuthErrorHook";
 import findProjectInQuery from "../../helpers/findProjectInQuery";
+import { checkHealth, initSession, callTool } from "../../helpers/mcpClient";
 import SkeletonCard from "./SkeletonCard";
 import SourceChips from "./SourceChips";
 
 const STORAGE_KEY = "askai_history";
-const MCP_URL = "http://localhost:3210";
+const API_URL = "http://localhost:5701";
 
-// keywords that trigger the MCP create log flow..
+// keywords fallback if AI intent check fails..
 const isCreateLogIntent = (query) => {
   const keywords = [
     "create a log from git",
@@ -22,6 +23,21 @@ const isCreateLogIntent = (query) => {
     "create log from commit",
   ];
   return keywords.some((k) => query.toLowerCase().includes(k));
+};
+
+// categorize user intent using Gemini via backend (Option A)..
+const getIntent = async (query, token) => {
+  try {
+    const res = await axios.post(
+      "/api/ask/intent",
+      { query },
+      { headers: { Authorization: token } },
+    );
+    return res.data?.intent || "SEARCH";
+  } catch (err) {
+    console.log("Intent classification fallback:", err.message);
+    return isCreateLogIntent(query) ? "CREATE" : "SEARCH";
+  }
 };
 
 export default function AskAI() {
@@ -78,83 +94,7 @@ export default function AskAI() {
     ]);
   };
 
-  // check if MCP server is running..
-  const checkMcpHealth = async () => {
-    try {
-      const response = await fetch(`${MCP_URL}/health`);
-      return response.ok;
-    } catch {
-      return false;
-    }
-  };
 
-  // call the MCP server to get git diff..
-  const getGitDiff = async () => {
-    const response = await fetch(`${MCP_URL}/mcp`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json, text/event-stream",
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "initialize",
-        params: {
-          protocolVersion: "2024-11-05",
-          capabilities: {},
-          clientInfo: { name: "buildlog-frontend", version: "1.0.0" },
-        },
-      }),
-    });
-
-    const sessionId = response.headers.get("mcp-session-id");
-
-    // send initialized notification..
-    await fetch(`${MCP_URL}/mcp`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json, text/event-stream",
-        "mcp-session-id": sessionId,
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        method: "notifications/initialized",
-      }),
-    }).catch(() => {}); // ignore notification errors..
-
-    // call get_git_diff tool..
-    const toolResponse = await fetch(`${MCP_URL}/mcp`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json, text/event-stream",
-        "mcp-session-id": sessionId,
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 2,
-        method: "tools/call",
-        params: { name: "get_git_diff", arguments: {} },
-      }),
-    });
-
-    const text = await toolResponse.text();
-
-    // parse SSE response — extract the data line..
-    const dataLine = text.split("\n").find((line) => line.startsWith("data:"));
-    if (!dataLine) throw new Error("No data in response");
-
-    const parsed = JSON.parse(dataLine.replace("data:", "").trim());
-    const diff = parsed?.result?.content?.[0]?.text;
-
-    if (!diff || diff.startsWith("Error:")) {
-      throw new Error(diff || "Failed to get git diff");
-    }
-
-    return { diff, sessionId };
-  };
 
   // MCP create log flow..
   const handleCreateLog = async (question) => {
@@ -170,11 +110,13 @@ export default function AskAI() {
         [],
         true,
       );
+      setIsLoading(false);
+      setPendingQuestion(null);
       return;
     }
 
     // check if MCP server is running..
-    const mcpRunning = await checkMcpHealth();
+    const mcpRunning = await checkHealth();
     if (!mcpRunning) {
       addToHistory(
         question,
@@ -182,6 +124,8 @@ export default function AskAI() {
         [],
         true,
       );
+      setIsLoading(false);
+      setPendingQuestion(null);
       return;
     }
 
@@ -189,7 +133,10 @@ export default function AskAI() {
     setIsLoading(true);
 
     try {
-      // first turn — send query to backend with tools..
+      // initialize MCP session with auth credentials — reused for both tools..
+      const sessionId = await initSession(token, API_URL);
+
+      // step 1 — send query to backend with tools..
       const firstResponse = await axios.post(
         "/api/ask/create-log",
         { query: question },
@@ -202,8 +149,8 @@ export default function AskAI() {
       if (type === "tool_call" && toolName === "get_git_diff") {
         let diff;
         try {
-          const result = await getGitDiff();
-          diff = result.diff;
+          // step 2 — call MCP get_git_diff tool..
+          diff = await callTool(sessionId, "get_git_diff");
         } catch (err) {
           addToHistory(
             question,
@@ -214,14 +161,33 @@ export default function AskAI() {
           return;
         }
 
-        // second turn — send diff back to backend..
+        // step 3 — send diff back to backend for Gemini to analyze..
         const secondResponse = await axios.post(
           "/api/ask/tool-result",
           { diff, chatHistory, projectId: matchedProject._id },
           { headers: { Authorization: token } },
         );
 
-        addToHistory(question, secondResponse.data.answer, [], false, true);
+        const result = secondResponse.data;
+
+        // step 4 — if backend returns create_log args, call MCP create_log tool..
+        if (result.type === "tool_call" && result.toolName === "create_log") {
+          try {
+            const mcpResult = await callTool(sessionId, "create_log", result.args);
+            addToHistory(question, mcpResult, [], false, true);
+          } catch (err) {
+            addToHistory(
+              question,
+              `Failed to create log via MCP: ${err.message}`,
+              [],
+              true,
+            );
+          }
+          return;
+        }
+
+        // backend responded with text directly..
+        addToHistory(question, result.answer, [], false, true);
         return;
       }
 
@@ -241,24 +207,26 @@ export default function AskAI() {
     }
   };
 
-  // regular RAG flow..
+  // main ask handler..
   const handleAsk = async () => {
     if (!query.trim() || isLoading) return;
 
     const question = query.trim();
     setQuery("");
+    setPendingQuestion(question);
+    setIsLoading(true);
 
-    // route based on intent..
-    if (isCreateLogIntent(question)) {
+    const token = localStorage.getItem("token");
+
+    // categorize intent using Gemini..
+    const intent = await getIntent(question, token);
+
+    if (intent === "CREATE") {
       await handleCreateLog(question);
       return;
     }
 
     // regular RAG flow..
-    const token = localStorage.getItem("token");
-    setPendingQuestion(question);
-    setIsLoading(true);
-
     try {
       const response = await axios.post(
         "/api/ask",

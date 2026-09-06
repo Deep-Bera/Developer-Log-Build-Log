@@ -12,6 +12,13 @@ router.post(
   authorizeUser(["admin", "user"]),
   askController.askAI,
 );
+// AI intent classification....
+router.post(
+  "/intent",
+  authenticateUser,
+  authorizeUser(["admin", "user"]),
+  askController.getIntent,
+);
 
 // first turn — send query to gemini with tools..
 router.post(
