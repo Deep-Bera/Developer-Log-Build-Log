@@ -1,7 +1,12 @@
 import { useState } from "react";
-import { X, FileText, MessageCircle, Loader2 } from "lucide-react";
+import { X, FileText, MessageCircle, Loader2, AlertCircle } from "lucide-react";
 
-export default function ArtifactModal({ onClose, onGenerate, isGenerating }) {
+export default function ArtifactModal({
+  onClose,
+  onGenerate,
+  isGenerating,
+  error,
+}) {
   const [selectedType, setSelectedType] = useState(null);
 
   const types = [
@@ -40,9 +45,17 @@ export default function ArtifactModal({ onClose, onGenerate, isGenerating }) {
             <X size={16} />
           </button>
         </div>
-        <p className="text-xs text-neutral-400 dark:text-neutral-500 mb-5">
+        <p className="text-xs text-neutral-400 dark:text-neutral-500 mb-4">
           Select what type of document you want to generate
         </p>
+
+        {/* error banner */}
+        {error && (
+          <div className="mb-4 p-3 text-xs bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 rounded-xl flex items-start gap-2 leading-relaxed">
+            <AlertCircle size={15} className="shrink-0 mt-0.5" />
+            <span>{error}</span>
+          </div>
+        )}
 
         {/* type cards */}
         <div className="grid grid-cols-2 gap-3 mb-6">

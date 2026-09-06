@@ -43,9 +43,10 @@ artifactController.generateArtifact = async (req, res) => {
       });
     }
 
-    // Fetch lightweight plain JS log objects with essential fields only, bypassing heavy embeddings for optimal performanc
+    // Fetch lightweight plain JS log objects with essential fields only, sorted chronologically..
     const logs = await Log.find({ projectId })
       .select("content entryType tags createdAt -_id")
+      .sort({ createdAt: 1 })
       .lean();
 
     if (logs.length === 0) {

@@ -24,6 +24,7 @@ export default function ProjectLogs() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showArtifactModal, setShowArtifactModal] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState("");
 
   const headers = { Authorization: `${localStorage.getItem("token")}` };
   const handleAuthError = useAuthError();
@@ -126,6 +127,7 @@ export default function ProjectLogs() {
 
   const handleGenerate = (type) => {
     setIsGenerating(true);
+    setGenerateError("");
     axios
       .post(`/api/artifacts/${id}`, { type }, { headers })
       .then(() => {
@@ -134,6 +136,10 @@ export default function ProjectLogs() {
       })
       .catch((err) => {
         handleAuthError(err);
+        const errorMsg =
+          err.response?.data?.message ||
+          "Failed to generate artifact. Please try again.";
+        setGenerateError(errorMsg);
         console.log(err.response?.data);
       })
       .finally(() => setIsGenerating(false));
@@ -184,7 +190,10 @@ export default function ProjectLogs() {
         </button>
         {project.status === "complete" && (
           <button
-            onClick={() => setShowArtifactModal(true)}
+            onClick={() => {
+              setGenerateError("");
+              setShowArtifactModal(true);
+            }}
             className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white cursor-pointer hover:bg-indigo-500 transition-colors"
           >
             <Sparkles size={12} />
@@ -279,9 +288,13 @@ export default function ProjectLogs() {
       )}
       {showArtifactModal && (
         <ArtifactModal
-          onClose={() => setShowArtifactModal(false)}
+          onClose={() => {
+            setShowArtifactModal(false);
+            setGenerateError("");
+          }}
           onGenerate={handleGenerate}
           isGenerating={isGenerating}
+          error={generateError}
         />
       )}
     </div>

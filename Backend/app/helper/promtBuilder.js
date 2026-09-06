@@ -1,21 +1,37 @@
 export default function buildPrompt(type, project, logs) {
+  const stackStr =
+    Array.isArray(project?.stack) && project.stack.length > 0
+      ? project.stack.join(", ")
+      : "Not specified";
+  const startDateStr = project?.startDate
+    ? new Date(project.startDate).toLocaleDateString()
+    : "Not specified";
+
   const projectInfo = `
-Project Name: ${project.name}
-Tech Stack: ${project.stack.join(", ")}
-Start Date: ${new Date(project.startDate).toLocaleDateString()}
-Status: ${project.status}
+Project Name: ${project?.name || "Untitled"}
+Tech Stack: ${stackStr}
+Start Date: ${startDateStr}
+Status: ${project?.status || "in-progress"}
   `.trim();
 
-  const logsText = logs
-    .map((log, i) =>
-      `
+  const logsText = (logs || [])
+    .map((log, i) => {
+      const tagsStr =
+        Array.isArray(log?.tags) && log.tags.length > 0
+          ? log.tags.join(", ")
+          : "none";
+      const logDate = log?.createdAt
+        ? new Date(log.createdAt).toLocaleDateString()
+        : "unknown date";
+
+      return `
 Log ${i + 1}:
-Type: ${log.entryType}
-Content: ${log.content}
-Tags: ${log.tags.join(", ") || "none"}
-Date: ${new Date(log.createdAt).toLocaleDateString()}
-      `.trim(),
-    )
+Type: ${log?.entryType || "Log"}
+Content: ${log?.content || ""}
+Tags: ${tagsStr}
+Date: ${logDate}
+      `.trim();
+    })
     .join("\n\n");
 
   if (type === "readme") {

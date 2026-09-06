@@ -18,6 +18,7 @@ export default function ProjectArtifacts() {
   const [isSaving, setIsSaving] = useState(false);
   const [showArtifactModal, setShowArtifactModal] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState("");
   const [loading, setLoading] = useState(true);
 
   const headers = { Authorization: `${localStorage.getItem("token")}` };
@@ -53,6 +54,7 @@ export default function ProjectArtifacts() {
 
   const handleGenerate = (type) => {
     setIsGenerating(true);
+    setGenerateError("");
     axios
       .post(`/api/artifacts/${id}`, { type }, { headers })
       .then((response) => {
@@ -63,6 +65,10 @@ export default function ProjectArtifacts() {
       })
       .catch((err) => {
         handleAuthError(err);
+        const errorMsg =
+          err.response?.data?.message ||
+          "Failed to generate artifact. Please try again.";
+        setGenerateError(errorMsg);
         console.log(err.response?.data);
       })
       .finally(() => setIsGenerating(false));
@@ -137,7 +143,10 @@ export default function ProjectArtifacts() {
       <ProjectTopBar project={project} activeTab="artifacts">
         {project.status === "complete" && (
           <button
-            onClick={() => setShowArtifactModal(true)}
+            onClick={() => {
+              setGenerateError("");
+              setShowArtifactModal(true);
+            }}
             className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors"
           >
             <Sparkles size={11} />
@@ -175,9 +184,13 @@ export default function ProjectArtifacts() {
 
       {showArtifactModal && (
         <ArtifactModal
-          onClose={() => setShowArtifactModal(false)}
+          onClose={() => {
+            setShowArtifactModal(false);
+            setGenerateError("");
+          }}
           onGenerate={handleGenerate}
           isGenerating={isGenerating}
+          error={generateError}
         />
       )}
     </div>
