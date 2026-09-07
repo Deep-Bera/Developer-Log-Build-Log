@@ -1,4 +1,4 @@
-const MCP_URL = "http://localhost:3210";
+const MCP_URL = import.meta.env.VITE_MCP_URL || "http://localhost:3210";
 
 // check if MCP server is running..
 export async function checkHealth() {

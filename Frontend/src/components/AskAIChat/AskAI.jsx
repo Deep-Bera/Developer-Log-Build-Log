@@ -8,10 +8,10 @@ import { checkHealth, initSession, callTool } from "../../helpers/mcpClient";
 import SkeletonCard from "./SkeletonCard";
 import SourceChips from "./SourceChips";
 
-const STORAGE_KEY = "askai_history";
-const API_URL = "http://localhost:5701";
+const STORAGE_KEY = import.meta.env.VITE_STORAGE_KEY || "askai_history";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5701";
 
-// keywords fallback if AI intent check fails..
+//AI intent check fails then this will be executed..
 const isCreateLogIntent = (query) => {
   const keywords = [
     "create a log from git",
@@ -94,8 +94,6 @@ export default function AskAI() {
     ]);
   };
 
-
-
   // MCP create log flow..
   const handleCreateLog = async (question) => {
     const token = localStorage.getItem("token");
@@ -173,7 +171,11 @@ export default function AskAI() {
         // step 4 — if backend returns create_log args, call MCP create_log tool..
         if (result.type === "tool_call" && result.toolName === "create_log") {
           try {
-            const mcpResult = await callTool(sessionId, "create_log", result.args);
+            const mcpResult = await callTool(
+              sessionId,
+              "create_log",
+              result.args,
+            );
             addToHistory(question, mcpResult, [], false, true);
           } catch (err) {
             addToHistory(
