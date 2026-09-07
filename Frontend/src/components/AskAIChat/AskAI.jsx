@@ -4,41 +4,13 @@ import ReactMarkdown from "react-markdown";
 import axios from "../../axiosConfig/axiosConfig";
 import useAuthError from "../../customHook/AuthErrorHook";
 import findProjectInQuery from "../../helpers/findProjectInQuery";
+import getIntent from "../../helpers/getIntent";
 import { checkHealth, initSession, callTool } from "../../helpers/mcpClient";
 import SkeletonCard from "./SkeletonCard";
 import SourceChips from "./SourceChips";
 
 const STORAGE_KEY = import.meta.env.VITE_STORAGE_KEY || "askai_history";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5701";
-
-//AI intent check fails then this will be executed..
-const isCreateLogIntent = (query) => {
-  const keywords = [
-    "create a log from git",
-    "log from git",
-    "log from my commit",
-    "log from latest commit",
-    "log from diff",
-    "capture git diff",
-    "create log from commit",
-  ];
-  return keywords.some((k) => query.toLowerCase().includes(k));
-};
-
-// categorize user intent using Gemini via backend (Option A)..
-const getIntent = async (query, token) => {
-  try {
-    const res = await axios.post(
-      "/api/ask/intent",
-      { query },
-      { headers: { Authorization: token } },
-    );
-    return res.data?.intent || "SEARCH";
-  } catch (err) {
-    console.log("Intent classification fallback:", err.message);
-    return isCreateLogIntent(query) ? "CREATE" : "SEARCH";
-  }
-};
 
 export default function AskAI() {
   const [query, setQuery] = useState("");
