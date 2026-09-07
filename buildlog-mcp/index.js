@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { randomUUID } from "crypto";
@@ -6,8 +7,9 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { z } from "zod";
 import getDiff from "./tools/getDiff.js";
 import createLog from "./tools/createLog.js";
+import listProjects from "./tools/listProjects.js";
 
-const PORT = 3210;
+const PORT = process.env.PORT || 3210;
 
 const sessionData = {};
 const transports = {};
@@ -67,9 +69,73 @@ function createServer() {
   );
 
   server.registerTool(
+    "list_projects",
+    {
+      description:
+        "Lists all projects belonging to the logged-in user in BuildLog. Use this to find available project names and IDs.",
+    },
+    async (arg, extra) => {
+      const sessionId = extra?.sessionId;
+      const session = sessionData[sessionId];
+      const token = session?.token || process.env.BUILDLOG_TOKEN;
+      const apiUrl =
+        session?.apiUrl || process.env.BUILDLOG_API_URL || "http://localhost:5701";
+
+      if (!token) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: "Error: No auth token found. Please set BUILDLOG_TOKEN in buildlog-mcp/.env",
+            },
+          ],
+        };
+      }
+
+      const result = await listProjects({ token, apiUrl });
+      if (!result.success) {
+        return {
+          content: [{ type: "text", text: `Error: ${result.message}` }],
+        };
+      }
+
+      const projects = result.projects || [];
+      if (projects.length === 0) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: "No projects found in your BuildLog account.",
+            },
+          ],
+        };
+      }
+
+      const formatted = projects
+        .map(
+          (p) =>
+            `- **${p.name}** (ID: \`${p._id}\`)${
+              p.stack ? ` — Stack: ${p.stack}` : ""
+            }`,
+        )
+        .join("\n");
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Available Projects:\n${formatted}`,
+          },
+        ],
+      };
+    },
+  );
+
+  server.registerTool(
     "create_log",
     {
-      description: "Creates a log entry in the Build Log platform",
+      description:
+        "Creates a log entry in the Build Log platform. Use list_projects first if you need the projectId.",
       inputSchema: {
         projectId: z.string().describe("The project ID to attach the log to"),
         entryType: z
@@ -84,13 +150,16 @@ function createServer() {
     async (arg, extra) => {
       const sessionId = extra?.sessionId;
       const session = sessionData[sessionId];
+      const token = session?.token || process.env.BUILDLOG_TOKEN;
+      const apiUrl =
+        session?.apiUrl || process.env.BUILDLOG_API_URL || "http://localhost:5701";
 
-      if (!session?.token || !session?.apiUrl) {
+      if (!token) {
         return {
           content: [
             {
               type: "text",
-              text: "Error: No auth token or API URL found for this session",
+              text: "Error: No auth token found. Please set BUILDLOG_TOKEN in buildlog-mcp/.env or pass it in headers.",
             },
           ],
         };
@@ -98,8 +167,8 @@ function createServer() {
 
       const result = await createLog({
         ...arg,
-        token: session.token,
-        apiUrl: session.apiUrl,
+        token,
+        apiUrl,
       });
 
       if (!result.success) {
@@ -112,7 +181,10 @@ function createServer() {
         content: [
           {
             type: "text",
-            text: `Log created successfully — ${arg.entryType}: ${arg.content.slice(0, 80)}...`,
+            text: `Log created successfully — ${arg.entryType}: ${arg.content.slice(
+              0,
+              80,
+            )}...`,
           },
         ],
       };
@@ -130,8 +202,6 @@ function isInitializeRequest(body) {
 // POST /mcp — handles init, tool calls, notifications..
 app.post("/mcp", async (req, res) => {
   const sessionId = req.headers["mcp-session-id"];
-  // console.log("Incoming request:", req.body?.method, "sessionId:", sessionId);
-  // console.log("Known sessions:", Object.keys(transports));
   try {
     let transport;
 
@@ -139,18 +209,23 @@ app.post("/mcp", async (req, res) => {
       // existing session — reuse transport..
       transport = transports[sessionId];
     } else if (!sessionId && isInitializeRequest(req.body)) {
-      // new session — only create transport for initialize requests..
-      const token = req.headers["x-buildlog-token"];
-      const apiUrl = req.headers["x-buildlog-api-url"];
+      // new session — read from headers or fallback to environment variables for Cursor..
+      const token =
+        req.headers["x-buildlog-token"] || process.env.BUILDLOG_TOKEN;
+      const apiUrl =
+        req.headers["x-buildlog-api-url"] ||
+        process.env.BUILDLOG_API_URL ||
+        "http://localhost:5701";
 
       transport = new StreamableHTTPServerTransport({
         sessionIdGenerator: () => randomUUID(),
         onsessioninitialized: (sid) => {
           // store transport only after session is fully initialized — avoids race condition..
           transports[sid] = transport;
-          if (token && apiUrl) {
-            sessionData[sid] = { token, apiUrl };
-          }
+          sessionData[sid] = {
+            token: token || process.env.BUILDLOG_TOKEN,
+            apiUrl: apiUrl || process.env.BUILDLOG_API_URL || "http://localhost:5701",
+          };
         },
       });
 
