@@ -1,8 +1,9 @@
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../customHook/useThem";
 import AuthContext from "../context/AuthContext";
+import ProfileModal from "./ProfileModal";
 import Logo from "../assets/favicon.svg";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import {
   LayoutDashboard,
   // FolderOpen,
@@ -12,13 +13,15 @@ import {
   Moon,
   Sun,
   LogOut,
+  UserRound,
 } from "lucide-react";
 
 export default function Sidebar() {
-  const { user } = useContext(AuthContext);
+  const { user, dispatch } = useContext(AuthContext);
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const lastProjectId = localStorage.getItem("lastVisitedProject");
   const navItems = [
@@ -32,13 +35,29 @@ export default function Sidebar() {
     { label: "Ask AI", icon: Sparkles, to: "/AskAI" },
     { label: "Public feed", icon: Globe, to: "/PublicFeed" },
   ];
-  // assinging the user name from the context ..
-  const username = user?.user?.name || localStorage.getItem("username") || "U";
+
+  // assigning the user name and avatar from context (with fallback) ..
+  const username =
+    user?.name || user?.user?.name || localStorage.getItem("username") || "U";
   const role = user?.role || localStorage.getItem("role") || "user";
+  const avatar = user?.avatar || user?.user?.avatar || null;
 
   const handleLogout = () => {
     localStorage.clear();
     navigate("/Login");
+  };
+
+  const handleProfileUpdated = (updatedUser) => {
+    if (updatedUser?.name) {
+      localStorage.setItem("username", updatedUser.name);
+    }
+    dispatch({
+      type: "Reload",
+      payload: {
+        ...user,
+        ...updatedUser,
+      },
+    });
   };
 
   return (
@@ -96,6 +115,15 @@ export default function Sidebar() {
           {theme === "dark" ? "Light mode" : "Dark mode"}
         </button>
 
+        {/* profile button */}
+        <button
+          onClick={() => setShowProfileModal(true)}
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors w-full"
+        >
+          <UserRound size={16} />
+          Profile
+        </button>
+
         {/* logout */}
         <button
           onClick={handleLogout}
@@ -107,8 +135,18 @@ export default function Sidebar() {
 
         {/* user info */}
         <div className="flex items-center gap-3 px-3 py-2 mt-1">
-          <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-xs font-semibold text-indigo-600 dark:text-indigo-300 uppercase shrink-0">
-            {username.charAt(0)}
+          <div className="w-7 h-7 rounded-full overflow-hidden shrink-0 flex items-center justify-center">
+            {avatar ? (
+              <img
+                src={avatar}
+                alt={username}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-xs font-semibold text-indigo-600 dark:text-indigo-300 uppercase shrink-0">
+                {username.charAt(0)}
+              </div>
+            )}
           </div>
           <div className="flex flex-col min-w-0">
             <span className="text-xs font-medium text-neutral-900 dark:text-white truncate capitalize">
@@ -120,6 +158,15 @@ export default function Sidebar() {
           </div>
         </div>
       </div>
+
+      {/* profile modal */}
+      {showProfileModal && (
+        <ProfileModal
+          user={user?.user || user}
+          onClose={() => setShowProfileModal(false)}
+          onUpdated={handleProfileUpdated}
+        />
+      )}
     </aside>
   );
 }

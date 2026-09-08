@@ -61,6 +61,10 @@ userController.loginUser = async (req, res) => {
         _id: user._id,
         name: user.name,
         role: user.role,
+        email: user.email,
+        bio: user.bio,
+        phone: user.phone,
+        avatar: user.avatar,
       },
     });
   } catch (err) {

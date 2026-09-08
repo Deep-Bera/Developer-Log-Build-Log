@@ -35,7 +35,7 @@ function App() {
           },
         })
         .then((response) => {
-          handleReload(response.data);
+          handleReload(response.data.data);
         })
         .catch((err) => {
           console.log(err.message);
