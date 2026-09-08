@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { X, Camera, Loader2 } from "lucide-react";
 import axios from "../axiosConfig/axiosConfig";
 
@@ -14,37 +14,6 @@ export default function ProfileModal({ user, onClose, onUpdated }) {
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState("");
   const fileInputRef = useRef(null);
-
-  // Always fetch the freshest profile data from backend on modal open
-  useEffect(() => {
-    let isMounted = true;
-    const fetchLatestProfile = async () => {
-      try {
-        const res = await axios.get("/api/users/profile", {
-          headers: {
-            Authorization: localStorage.getItem("token"),
-          },
-        });
-        const profile = res.data?.data;
-        if (isMounted && profile) {
-          setForm({
-            name: profile.name || "",
-            email: profile.email || "",
-            bio: profile.bio || "",
-            phone: profile.phone || "",
-          });
-          setAvatarPreview(profile.avatar || null);
-        }
-      } catch (err) {
-        console.log("Error loading profile:", err.message);
-      }
-    };
-
-    fetchLatestProfile();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
