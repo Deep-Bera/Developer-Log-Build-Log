@@ -7,7 +7,7 @@ export default function getDiff() {
   try {
     // try latest commit diff first..
     let diff = execSync("git diff HEAD~1 HEAD", {
-      cwd: process.cwd(),
+      cwd: process.cwd(), //CWD -> current working directory
     })
       .toString()
       .trim();

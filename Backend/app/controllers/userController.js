@@ -71,48 +71,68 @@ userController.loginUser = async (req, res) => {
 
 userController.userDetails = async (req, res) => {
   const id = req.userId;
-  // console.log(id);
-
   try {
     const user = await User.findById(id);
     if (!user) {
-      res.status(200).json({ error: "No user found " });
+      return res.status(404).json({ message: "No user found" });
     }
     res.status(200).json({
-      user: {
+      data: {
         _id: user._id,
         name: user.name,
         role: user.role,
         email: user.email,
+        bio: user.bio,
+        phone: user.phone,
+        avatar: user.avatar,
       },
     });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ error: "something went wrong" });
+    res.status(500).json({ message: "Something went wrong" });
   }
 };
 
 userController.updateUserDetails = async (req, res) => {
-  const { name, email, bio } = req.body;
+  const { name, email, bio, phone } = req.body;
   const id = req.userId;
+
   try {
-    const user = await User.findByIdAndUpdate(
-      id,
-      { name: name, email: email, bio: bio },
-      { returnDocument: "after" },
-    );
+    const updateFields = {};
+
+    if (name) updateFields.name = name;
+    if (email) updateFields.email = email;
+    if (bio !== undefined) updateFields.bio = bio;
+    if (phone !== undefined) updateFields.phone = phone;
+
+    // if a file was uploaded, cloudinary url comes from multer..
+    if (req.file?.path) {
+      updateFields.avatar = req.file.path;
+    }
+
+    const user = await User.findByIdAndUpdate(id, updateFields, {
+      returnDocument: "after",
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     res.status(200).json({
-      UserData: {
+      data: {
         name: user.name,
         email: user.email,
+        bio: user.bio,
+        phone: user.phone,
+        avatar: user.avatar,
         userId: user._id,
         role: user.role,
       },
-      message: "Successfully Updated the Data",
+      message: "Profile updated successfully",
     });
   } catch (err) {
     console.log(err.message);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ message: "Something went wrong" });
   }
 };
 

@@ -22,6 +22,20 @@ const userSchema = new Schema(
       enum: ["user", "moderator", "admin"],
       default: "user",
     },
+    bio: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    phone: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    avatar: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true },
 );

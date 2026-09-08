@@ -7,6 +7,7 @@ import {
   userLoginValidator,
 } from "../validators/userValidator.js";
 import authentication from "../middleware/authentication.js";
+import upload from "../middleware/upload.js";
 
 const router = express.Router();
 
@@ -21,6 +22,11 @@ router.post(
   userController.loginUser,
 );
 router.get("/profile", authentication, userController.userDetails);
-router.put("/:id", authentication, userController.updateUserDetails);
+router.put(
+  "/profile",
+  authentication,
+  upload.single("avatar"),
+  userController.updateUserDetails,
+);
 
 export default router;
