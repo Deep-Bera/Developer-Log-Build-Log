@@ -47,7 +47,7 @@ export default function ProfileModal({ user, onClose, onUpdated }) {
       const response = await axios.put("/api/users/profile", formData, {
         headers: {
           Authorization: localStorage.getItem("token"),
-          // don't set Content-Type manually — axios sets it with boundary for multipart..
+          // don't set Content-Type manually — axios sets it with boundary for multipart....
         },
       });
       onUpdated(response.data.data);
