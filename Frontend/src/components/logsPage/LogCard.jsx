@@ -1,165 +1,54 @@
-import { useState } from "react";
+const typeBadge = {
+  Decision: "bg-[#eeedfe] text-[#3c3489]",
+  Blocker: "bg-[#fcebeb] text-[#a32d2d]",
+  Win: "bg-[#eaf3de] text-[#27500a]",
+  Learn: "bg-[#faeeda] text-[#633806]",
+};
 
-export default function LogCard({ log, onSave, onDelete }) {
-  // local edit state lives here now, no need to track it in the parent..
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({
-    entryType: "",
-    content: "",
-    tags: "",
-  });
-
-  // dot color per entry type
-  const dotColor = {
-    Decision: "#7f77dd",
-    Blocker: "#e24b4a",
-    Win: "#639922",
-    Learn: "#ba7517",
-  };
-
-  // pre fill the form with existing log data so user doesnt have to retype everything..
-  const handleEditClick = () => {
-    setIsEditing(true);
-    setEditForm({
-      entryType: log.entryType,
-      content: log.content,
-      tags: log.tags.join(", "),
-    });
-  };
-
-  // just reset everything back..
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditForm({ entryType: "", content: "", tags: "" });
-  };
-
-  // fire the patch and let the parent update the logs state..
-  const handleSaveEdit = () => {
-    const payload = {
-      entryType: editForm.entryType,
-      content: editForm.content,
-      tags: editForm.tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean),
-    };
-    onSave(log._id, payload, handleCancelEdit);
-  };
-
-  // confirm before deleting..
-  const handleDeleteClick = () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this log? This cannot be undone.",
-    );
-    if (!confirmed) return;
-    onDelete(log._id);
-  };
-
+export default function LogCard({ log, isSelected, onSelectLog }) {
   return (
-    <div style={{ display: "flex", gap: "16px" }}>
-      {/* timeline dot */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        <div
-          style={{
-            width: "10px",
-            height: "10px",
-            borderRadius: "50%",
-            background: dotColor[log.entryType],
-            marginTop: "5px",
-          }}
-        ></div>
-        <div
-          style={{
-            width: "1px",
-            background: "#e2e8f0",
-            flex: 1,
-            marginTop: "4px",
-          }}
-        ></div>
+    <div
+      onClick={() => onSelectLog(log)}
+      className={`px-4 py-3 rounded-xl cursor-pointer transition-all group
+        ${
+          isSelected
+            ? "bg-neutral-100 dark:bg-neutral-800 shadow-sm"
+            : "hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:shadow-sm"
+        }`}
+    >
+      {/* type badge + date */}
+      <div className="flex items-center justify-between mb-2">
+        <span
+          className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${typeBadge[log.entryType] || ""}`}
+        >
+          {log.entryType}
+        </span>
+        <span className="text-[11px] text-neutral-400 dark:text-neutral-600">
+          {new Date(log.createdAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })}
+        </span>
       </div>
 
-      {/* log card */}
-      <div style={{ flex: 1, marginBottom: "16px" }}>
-        {/* flip between edit mode and read mode..  */}
-        {isEditing ? (
-          // --- inline edit mode ---
-          <div>
-            {/* entry type selector */}
-            <div>
-              {["Decision", "Blocker", "Win", "Learn"].map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setEditForm({ ...editForm, entryType: type })}
-                  style={{
-                    fontWeight: editForm.entryType === type ? "600" : "400",
-                  }}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
+      {/* content snippet */}
+      <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2 leading-relaxed mb-2">
+        {log.content}
+      </p>
 
-            {/* content */}
-            <textarea
-              rows="4"
-              value={editForm.content}
-              onChange={(e) =>
-                setEditForm({ ...editForm, content: e.target.value })
-              }
-            />
-
-            {/* tags */}
-            <input
-              type="text"
-              value={editForm.tags}
-              placeholder="e.g. backend, auth, bug"
-              onChange={(e) =>
-                setEditForm({ ...editForm, tags: e.target.value })
-              }
-            />
-            <small>Separate each tag with a comma</small>
-
-            {/* save / cancel */}
-            <div>
-              <button onClick={handleSaveEdit}>Save</button>
-              <button onClick={handleCancelEdit}>Cancel</button>
-            </div>
-          </div>
-        ) : (
-          // --- read mode ---
-          <div>
-            <div>
-              <span>{log.entryType}</span>
-              <span>
-                {new Date(log.createdAt).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </span>
-            </div>
-            <p>{log.content}</p>
-            <div>
-              {log.tags.map((tag) => (
-                <span key={tag}>{tag}</span>
-              ))}
-            </div>
-
-            {/* edit and delete buttons sitting directly on the card.. */}
-            <div>
-              <button onClick={handleEditClick}>Edit</button>
-              <button onClick={handleDeleteClick}>Delete</button>
-            </div>
-          </div>
-        )}
-      </div>
+      {/* tags */}
+      {log.tags && log.tags.length > 0 && (
+        <div className="flex gap-1 flex-wrap">
+          {log.tags.slice(0, 3).map((tag) => (
+            <span
+              key={tag}
+              className="text-[10px] px-1.5 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-700 text-neutral-400 dark:text-neutral-500"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
