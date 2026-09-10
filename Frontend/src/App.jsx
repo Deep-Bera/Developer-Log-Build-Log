@@ -3,6 +3,9 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Project from "./pages/Project";
 import PublicFeed from "./pages/PublicFeed";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminUsersPage from "./pages/AdminUsersPage";
+import AdminProjectsPage from "./pages/AdminProjectsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SideBar from "./components/SideBar";
 import ProjectLogs from "./components/logsPage/ProjectLogs";
@@ -22,7 +25,8 @@ function App() {
 
   // pages where sidebar should NOT appear....
   const authPages = ["/", "/Login", "/Register"];
-  const showSidebar = !authPages.includes(location.pathname);
+  const adminPages = location.pathname.startsWith("/Admin");
+  const showSidebar = !authPages.includes(location.pathname) && !adminPages;
   // console.log(location.pathname, showSidebar);
   // this useEffect is only there to handle page reload
   // console.log("token on mount:", localStorage.getItem("token"));
@@ -111,6 +115,30 @@ function App() {
             element={
               <ProtectedRoute>
                 <AskAI />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/Admin"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/Admin/users"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminUsersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/Admin/projects"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminProjectsPage />
               </ProtectedRoute>
             }
           />

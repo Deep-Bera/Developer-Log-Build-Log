@@ -26,7 +26,17 @@ export default function PublicFeed() {
         setLoading(false);
       });
   }, []);
+  const handleReport = (e, projectId) => {
+    // stop the card click from firing..
+    e.stopPropagation();
+    const confirmed = window.confirm("Report this project?");
+    if (!confirmed) return;
 
+    axios
+      .post(`/api/projects/${projectId}/report`, {}, { headers })
+      .then(() => alert("Project reported. Our team will review it."))
+      .catch((err) => console.log(err.message));
+  };
   // frontend search by project name..
   const filteredProjects = projects.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -112,6 +122,12 @@ export default function PublicFeed() {
                 <span className="text-xs text-neutral-400 dark:text-neutral-500 ml-auto capitalize">
                   by {project.userId?.name || "Unknown"}
                 </span>
+                <button
+                  onClick={(e) => handleReport(e, project._id)}
+                  className="ml-auto text-xs text-neutral-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                >
+                  Report
+                </button>
               </div>
             </div>
           ))}

@@ -20,7 +20,11 @@ export default function AuthProvider(props) {
     localStorage.setItem("role", user.role);
     localStorage.setItem("username", user.name);
     dispatch({ type: "Login", payload: user });
-    navigate("/Dashboard");
+    if (user.role === "admin") {
+      navigate("/Admin");
+    } else {
+      navigate("/Dashboard");
+    }
   };
 
   const handleLogout = () => {
