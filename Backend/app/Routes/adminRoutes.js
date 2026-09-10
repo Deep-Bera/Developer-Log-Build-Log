@@ -57,6 +57,13 @@ router.patch(
   adminController.toggleHideProject,
 );
 
+router.patch(
+  "/projects/:id/revoke",
+  authenticateUser,
+  authorizeUser(["admin"]),
+  adminController.revokeApproval,
+);
+
 router.delete(
   "/projects/:id",
   authenticateUser,

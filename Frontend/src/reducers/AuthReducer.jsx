@@ -1,7 +1,12 @@
 const reducer = (state, action) => {
   switch (action.type) {
     case "Login": {
-      return { ...state, isLoggedIn: true, user: action.payload };
+      return {
+        ...state,
+        isLoggedIn: true,
+        user: action.payload,
+        role: action.payload.role,
+      };
     }
     case "Reload": {
       return { ...state, isLoggedIn: true, user: action.payload };
