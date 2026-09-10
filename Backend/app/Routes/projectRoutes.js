@@ -74,4 +74,10 @@ router.delete(
   projectController.deleteProject,
 );
 
+router.post(
+  "/:id/report",
+  authenticateUser,
+  authorizeUser(["admin", "user"]),
+  projectController.reportProject,
+);
 export default router;

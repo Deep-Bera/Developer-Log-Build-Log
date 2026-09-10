@@ -16,6 +16,8 @@ import projectRoute from "./app/Routes/projectRoutes.js";
 import logsRoute from "./app/Routes/logRoutes.js";
 import artifactRoute from "./app/Routes/artifactRoute.js";
 import askRoute from "./app/Routes/askAIRoutes.js";
+import adminRoute from "./app/Routes/adminRoutes.js";
+
 const app = express();
 const port = process.env.PORT;
 configDB();
@@ -55,6 +57,8 @@ app.use("/api/logs", logsRoute);
 app.use("/api/artifacts", artifactRoute);
 //*--------------------------------------Ask AI Routes---------------------------//
 app.use("/api/ask", askRoute);
+// *-------------------------------------Admin Routes----------------------------//
+app.use("/api/admin", adminRoute);
 
 app.listen(port, () => {
   console.log("server is running on PORT", port);

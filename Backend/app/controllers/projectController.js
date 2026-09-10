@@ -121,6 +121,7 @@ projectController.getAllPublicProjects = async (req, res) => {
     const projects = await Project.find({
       isPublic: true,
       isHidden: false,
+      isApproved: true,
     }).populate("userId", "name");
 
     if (projects.length === 0) {
@@ -141,6 +142,7 @@ projectController.getPublicProjectById = async (req, res) => {
       _id: id,
       isPublic: true,
       isHidden: false,
+      isApproved: true,
     }).populate("userId", "name");
 
     if (!project) {
@@ -172,6 +174,27 @@ projectController.setProjectVisibility = async (req, res) => {
       message: `Project is now ${updatedProject.isPublic ? "public" : "private"}`,
       data: updatedProject,
     });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// any logged-in user can report a public project — just increments the count..
+projectController.reportProject = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const project = await Project.findOneAndUpdate(
+      { _id: id, isPublic: true, isHidden: false },
+      { $inc: { reportCount: 1 } },
+      { returnDocument: "after" },
+    );
+
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    res.status(200).json({ message: "Project reported", data: project });
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ message: error.message });
