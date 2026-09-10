@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { CheckCircle, XCircle, EyeOff, Trash2, Loader2 } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  EyeOff,
+  Trash2,
+  Loader2,
+  ShieldOff,
+} from "lucide-react";
 import axios from "../../axiosConfig/axiosConfig";
 import RejectModal from "./RejectModal";
 
@@ -84,6 +91,22 @@ export default function AdminProjects() {
       })
       .catch((err) => console.log(err.message))
       .finally(() => setDeletingId(null));
+  };
+
+  const handleRevoke = (projectId) => {
+    const confirmed = window.confirm(
+      "Revoke approval? Project will be removed from public feed and go back to pending.",
+    );
+    if (!confirmed) return;
+
+    axios
+      .patch(`/api/admin/projects/${projectId}/revoke`, {}, { headers })
+      .then((res) => {
+        setProjects((prev) =>
+          prev.map((p) => (p._id === projectId ? res.data.data : p)),
+        );
+      })
+      .catch((err) => console.log(err.message));
   };
 
   return (
@@ -199,6 +222,15 @@ export default function AdminProjects() {
                       className="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                     >
                       <XCircle size={15} />
+                    </button>
+                  )}
+                  {project.isApproved && (
+                    <button
+                      onClick={() => handleRevoke(project._id)}
+                      title="Revoke Approval"
+                      className="p-1.5 rounded-lg text-neutral-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors"
+                    >
+                      <ShieldOff size={15} />
                     </button>
                   )}
                   <button

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../axiosConfig/axiosConfig";
 import useAuthError from "../customHook/AuthErrorHook";
+import { Flag } from "lucide-react";
 
 export default function PublicFeed() {
   const [projects, setProjects] = useState([]);
@@ -84,12 +85,12 @@ export default function PublicFeed() {
               className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-5 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-1 hover:border-neutral-300 dark:hover:border-neutral-600 hover:shadow-xl dark:hover:shadow-xl dark:hover:shadow-emerald-100/10"
             >
               {/* name and status */}
-              <div className="flex items-start justify-between mb-3">
-                <p className="text-sm font-semibold text-neutral-900 dark:text-white capitalize">
+              <div className="flex items-start justify-between mb-2">
+                <p className="text-sm font-semibold text-neutral-900 dark:text-white">
                   {project.name}
                 </p>
                 <span
-                  className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                  className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ml-2 ${
                     project.status === "in-progress"
                       ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                       : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
@@ -102,9 +103,21 @@ export default function PublicFeed() {
               </div>
 
               {/* stack */}
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-4">
-                {project.stack.join(" · ")}
-              </p>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {project.stack.join(" · ")}
+                </p>
+                <button
+                  onClick={(e) => handleReport(e, project._id)}
+                  className="flex items-center gap-1 text-[12px] text-neutral-400 dark:text-neutral-500 hover:text-red-500 dark:hover:text-red-400 transition-colors shrink-0 ml-6 group/report"
+                >
+                  <Flag
+                    size={11}
+                    className="group-hover/report:fill-red-500 transition-all"
+                  />
+                  Report Project
+                </button>
+              </div>
 
               {/* meta row */}
               <div className="flex items-center gap-4 pt-3 border-t border-neutral-100 dark:border-neutral-800">
@@ -122,12 +135,6 @@ export default function PublicFeed() {
                 <span className="text-xs text-neutral-400 dark:text-neutral-500 ml-auto capitalize">
                   by {project.userId?.name || "Unknown"}
                 </span>
-                <button
-                  onClick={(e) => handleReport(e, project._id)}
-                  className="ml-auto text-xs text-neutral-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                >
-                  Report
-                </button>
               </div>
             </div>
           ))}

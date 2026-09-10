@@ -139,6 +139,26 @@ adminController.rejectProject = async (req, res) => {
   }
 };
 
+adminController.revokeApproval = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const project = await Project.findByIdAndUpdate(
+      id,
+      { isApproved: false, rejectionReason: "" },
+      { returnDocument: "after" },
+    );
+
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    res.status(200).json({ data: project, message: "Approval revoked" });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // toggles isHidden — used for hiding/unhiding reported projects..
 adminController.toggleHideProject = async (req, res) => {
   const { id } = req.params;
