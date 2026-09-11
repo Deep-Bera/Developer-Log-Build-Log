@@ -31,7 +31,7 @@ export default function AdminSidebar() {
   const displayName = username.charAt(0).toUpperCase() + username.slice(1);
 
   const navItems = [
-    { label: "Overview", icon: LayoutDashboard, to: "/Admin" },
+    { label: "Dashboard", icon: LayoutDashboard, to: "/Admin" },
     { label: "Users", icon: Users, to: "/Admin/users" },
     { label: "Projects", icon: FolderOpen, to: "/Admin/projects" },
   ];

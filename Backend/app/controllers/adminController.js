@@ -1,6 +1,7 @@
 import User from "../models/userModel.js";
 import Project from "../models/projectModel.js";
 import Log from "../models/logModel.js";
+import Artifact from "../models/artifactModel.js";
 
 const adminController = {};
 
@@ -68,6 +69,7 @@ adminController.deleteUser = async (req, res) => {
     const projectIds = projects.map((p) => p._id);
 
     await Log.deleteMany({ projectId: { $in: projectIds } });
+    await Artifact.deleteMany({ projectId: { $in: projectIds } });
     await Project.deleteMany({ userId: id });
 
     res.status(200).json({ message: "User and all their data deleted" });
@@ -124,7 +126,11 @@ adminController.rejectProject = async (req, res) => {
   try {
     const project = await Project.findByIdAndUpdate(
       id,
-      { isApproved: false, rejectionReason: rejectionReason.trim() },
+      {
+        isApproved: false,
+        isPublic: false,
+        rejectionReason: rejectionReason.trim(),
+      },
       { returnDocument: "after" },
     );
 
@@ -144,7 +150,7 @@ adminController.revokeApproval = async (req, res) => {
   try {
     const project = await Project.findByIdAndUpdate(
       id,
-      { isApproved: false, rejectionReason: "" },
+      { isApproved: false, rejectionReason: "", isPublic: false },
       { returnDocument: "after" },
     );
 
@@ -193,7 +199,7 @@ adminController.deleteProject = async (req, res) => {
 
     // clean up all logs under this project..
     await Log.deleteMany({ projectId: id });
-
+    await Artifact.deleteMany({ projectId: { $in: projectIds } });
     res
       .status(200)
       .json({ message: "Project and its logs deleted successfully" });

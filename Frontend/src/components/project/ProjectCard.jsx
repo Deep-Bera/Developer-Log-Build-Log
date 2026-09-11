@@ -5,6 +5,8 @@ import {
   Calendar,
   Globe,
   Lock,
+  XCircle,
+  Clock,
 } from "lucide-react";
 
 export default function ProjectCard({
@@ -33,16 +35,16 @@ export default function ProjectCard({
       {/* top row — name, stack, badge, menu */}
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1 min-w-0 pr-2">
-          <h3 className="text-[14px] font-semibold text-neutral-900 dark:text-white truncate capitalize group-hover:text-neutral-600  dark:group-hover:text-sky-400 transition-colors">
+          <h3 className="text-[14px] font-semibold text-neutral-900 dark:text-white truncate capitalize group-hover:text-neutral-600 dark:group-hover:text-sky-400 transition-colors">
             {project.name}
           </h3>
-          {/* to show the tech stack */}
+          {/* tech stack tags */}
           <div className="flex flex-wrap gap-1 mt-1.5 mb-2">
             {(Array.isArray(project.stack)
               ? project.stack
               : (project.stack || "").split(",").map((s) => s.trim())
             )
-              .slice(0, 3)
+              .slice(0, 2)
               .map((tech, idx) => (
                 <span
                   key={idx}
@@ -52,10 +54,9 @@ export default function ProjectCard({
                 </span>
               ))}
 
-            {/* show +N if there are more than 3.. */}
-            {project.stack.length > 3 && (
+            {project.stack.length > 2 && (
               <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-500 border border-neutral-200 dark:border-neutral-700/60">
-                +{project.stack.length - 3}
+                +{project.stack.length - 2}
               </span>
             )}
           </div>
@@ -90,7 +91,7 @@ export default function ProjectCard({
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 top-7 z-20 w-40 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-lg py-1 overflow-hidden rounded-lg ">
+              <div className="absolute right-0 top-7 z-20 w-40 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-lg py-1 overflow-hidden">
                 <button
                   onClick={() => {
                     onEdit(project);
@@ -153,10 +154,37 @@ export default function ProjectCard({
             year: "numeric",
           })}
         </span>
-        <span className="flex items-center gap-1 text-[11px] text-neutral-400 dark:text-neutral-500 ml-auto">
-          {project.isPublic ? <Globe size={12} /> : <Lock size={12} />}
-          {project.isPublic ? "Public" : "Private"}
-        </span>
+
+        {/* approval status sits at the far right — only when project is public */}
+        <div className="ml-auto">
+          {project.rejectionReason ? (
+            // rejected — show reason in tooltip even though isPublic is now false..
+            <span
+              className="flex items-center gap-1 text-[11px] text-red-500 dark:text-red-400 font-medium"
+              title={project.rejectionReason}
+            >
+              <XCircle size={12} />
+              Rejected
+            </span>
+          ) : project.isPublic ? (
+            project.isApproved ? (
+              <span className="flex items-center gap-1 text-[11px] text-green-600 dark:text-green-400 font-medium">
+                <Globe size={12} />
+                Public
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-[11px] text-amber-500 dark:text-amber-400 font-medium">
+                <Clock size={12} />
+                Pending
+              </span>
+            )
+          ) : (
+            <span className="flex items-center gap-1 text-[11px] text-neutral-400 dark:text-neutral-500">
+              <Lock size={12} />
+              Private
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

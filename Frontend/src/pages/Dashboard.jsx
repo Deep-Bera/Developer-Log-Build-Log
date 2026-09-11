@@ -87,10 +87,15 @@ export default function Dashboard() {
     currentPage * projectsPerPage,
   );
   const handleDelete = (projectId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this project? This will also delete all its logs and artifacts. This cannot be undone.",
+    );
+    if (!confirmed) return;
+
     axios
       .delete(`/api/projects/${projectId}`, { headers })
       .then(() => {
-        setProjects((prev) => prev.filter((p) => p._id !== projectId));
+        setProjects(projects.filter((p) => p._id !== projectId));
       })
       .catch((err) => {
         handleAuthError(err);

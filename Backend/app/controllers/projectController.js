@@ -1,5 +1,6 @@
 import Project from "../models/projectModel.js";
 import Log from "../models/logModel.js";
+import Artifact from "../models/artifactModel.js";
 import { validationResult } from "express-validator";
 
 const projectController = {};
@@ -100,6 +101,7 @@ projectController.deleteProject = async (req, res) => {
   const { id } = req.params;
   try {
     await Log.deleteMany({ projectId: id });
+    await Artifact.deleteMany({ projectId: id });
     const deletedProject = await Project.findOneAndDelete({
       _id: id,
       userId: req.userId,
@@ -159,10 +161,16 @@ projectController.getPublicProjectById = async (req, res) => {
 projectController.setProjectVisibility = async (req, res) => {
   const { id } = req.params;
   try {
-    //here used to be one more DB call, but that checking is already been done in the verifyOwener Middle ware so no need to check that here againg
     const updatedProject = await Project.findOneAndUpdate(
       { _id: id, userId: req.userId },
-      { isPublic: !req.project.isPublic },
+      {
+        isPublic: !req.project.isPublic,
+        // if making public again, clear rejection reason and reset approval..
+        ...(req.project.isPublic === false && {
+          rejectionReason: "",
+          isApproved: false,
+        }),
+      },
       { returnDocument: "after" },
     );
 
@@ -174,7 +182,7 @@ projectController.setProjectVisibility = async (req, res) => {
       message: `Project is now ${updatedProject.isPublic ? "public" : "private"}`,
       data: updatedProject,
     });
-  } catch (error) {
+  } catch (err) {
     console.log(error.message);
     res.status(500).json({ message: error.message });
   }
