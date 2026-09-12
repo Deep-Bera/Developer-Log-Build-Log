@@ -131,11 +131,20 @@ export default function Dashboard() {
       });
   };
 
+  const totalCount = projects.length;
+  const inProgressCount = projects.filter(
+    (p) => p.status === "in-progress",
+  ).length;
+  const completeCount = projects.filter(
+    (p) => p.status === "complete",
+  ).length;
+  const publicCount = projects.filter((p) => p.isPublic).length;
+
   const stats = [
     {
       title: "Total projects",
-      value: 3,
-      subtitle: "2 active",
+      value: totalCount,
+      subtitle: `${inProgressCount} active`,
       icon: FolderGit2,
       iconColor: "text-blue-600 dark:text-blue-400",
       iconBg:
@@ -143,7 +152,7 @@ export default function Dashboard() {
     },
     {
       title: "In progress",
-      value: 2,
+      value: inProgressCount,
       subtitle: "building now",
       icon: Hammer,
       iconColor: "text-amber-600 dark:text-amber-400",
@@ -152,7 +161,7 @@ export default function Dashboard() {
     },
     {
       title: "Complete",
-      value: 1,
+      value: completeCount,
       subtitle: "shipped",
       icon: CheckCircle2,
       iconColor: "text-emerald-600 dark:text-emerald-400",
@@ -161,7 +170,7 @@ export default function Dashboard() {
     },
     {
       title: "Public projects",
-      value: 1,
+      value: publicCount,
       subtitle: "visible to all",
       icon: Globe,
       iconColor: "text-indigo-600 dark:text-indigo-400",
