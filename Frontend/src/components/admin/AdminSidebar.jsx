@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useTheme } from "../../customHook/useThem";
 import { useContext } from "react";
 import AuthContext from "../../context/AuthContext";
@@ -20,7 +20,7 @@ import ProfileModal from "../ProfileModal";
 export default function AdminSidebar() {
   const { user, dispatch, handleLogout } = useContext(AuthContext);
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
   const username =
