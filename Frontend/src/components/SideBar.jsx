@@ -6,7 +6,6 @@ import Logo from "../assets/favicon.svg";
 import { useContext, useState } from "react";
 import {
   LayoutDashboard,
-  // FolderOpen,
   ScrollText,
   Sparkles,
   Globe,
@@ -14,16 +13,19 @@ import {
   Sun,
   LogOut,
   UserRound,
+  ShieldCheck,
 } from "lucide-react";
 
 export default function Sidebar() {
-  const { user, dispatch } = useContext(AuthContext);
+  const { user, dispatch, handleLogout } = useContext(AuthContext);
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   const lastProjectId = localStorage.getItem("lastVisitedProject");
+  const role = user?.role || localStorage.getItem("role") || "user";
+
   const navItems = [
     { label: "Dashboard", icon: LayoutDashboard, to: "/Dashboard" },
     // { label: "Projects", icon: FolderOpen, to: "/Projects" },
@@ -34,18 +36,15 @@ export default function Sidebar() {
     },
     { label: "Ask AI", icon: Sparkles, to: "/AskAI" },
     { label: "Public feed", icon: Globe, to: "/PublicFeed" },
+    ...(role === "admin"
+      ? [{ label: "Admin Panel", icon: ShieldCheck, to: "/Admin" }]
+      : []),
   ];
 
   // assigning the user name and avatar from context (with fallback) ..
   const username =
     user?.name || user?.user?.name || localStorage.getItem("username") || "U";
-  const role = user?.role || localStorage.getItem("role") || "user";
   const avatar = user?.avatar || user?.user?.avatar || null;
-
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/Login");
-  };
 
   const handleProfileUpdated = (updatedUser) => {
     if (updatedUser?.name) {

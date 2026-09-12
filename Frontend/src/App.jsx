@@ -25,7 +25,7 @@ function App() {
 
   // pages where sidebar should NOT appear....
   const authPages = ["/", "/Login", "/Register"];
-  const adminPages = location.pathname.startsWith("/Admin");
+  const adminPages = location.pathname.toLowerCase().startsWith("/admin");
   const showSidebar = !authPages.includes(location.pathname) && !adminPages;
   // console.log(location.pathname, showSidebar);
   // this useEffect is only there to handle page reload

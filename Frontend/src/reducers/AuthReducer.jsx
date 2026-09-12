@@ -9,10 +9,15 @@ const reducer = (state, action) => {
       };
     }
     case "Reload": {
-      return { ...state, isLoggedIn: true, user: action.payload };
+      return {
+        ...state,
+        isLoggedIn: true,
+        user: action.payload,
+        role: action.payload?.role || state.role,
+      };
     }
     case "Logout": {
-      return { ...state, isLoggedIn: false, user: null };
+      return { ...state, isLoggedIn: false, user: null, role: "user" };
     }
 
     default: {

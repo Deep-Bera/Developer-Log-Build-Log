@@ -102,7 +102,7 @@ adminController.approveProject = async (req, res) => {
       id,
       { isApproved: true, rejectionReason: "" },
       { returnDocument: "after" },
-    );
+    ).populate("userId", "name email");
 
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
@@ -132,7 +132,7 @@ adminController.rejectProject = async (req, res) => {
         rejectionReason: rejectionReason.trim(),
       },
       { returnDocument: "after" },
-    );
+    ).populate("userId", "name email");
 
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
@@ -152,7 +152,7 @@ adminController.revokeApproval = async (req, res) => {
       id,
       { isApproved: false, rejectionReason: "", isPublic: false },
       { returnDocument: "after" },
-    );
+    ).populate("userId", "name email");
 
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
@@ -169,7 +169,7 @@ adminController.revokeApproval = async (req, res) => {
 adminController.toggleHideProject = async (req, res) => {
   const { id } = req.params;
   try {
-    const project = await Project.findById(id);
+    const project = await Project.findById(id).populate("userId", "name email");
 
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
@@ -197,9 +197,9 @@ adminController.deleteProject = async (req, res) => {
       return res.status(404).json({ message: "Project not found" });
     }
 
-    // clean up all logs under this project..
+    // clean up all logs and artifacts under this project..
     await Log.deleteMany({ projectId: id });
-    await Artifact.deleteMany({ projectId: { $in: projectIds } });
+    await Artifact.deleteMany({ projectId: id });
     res
       .status(200)
       .json({ message: "Project and its logs deleted successfully" });

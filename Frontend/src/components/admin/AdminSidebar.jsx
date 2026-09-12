@@ -12,12 +12,13 @@ import {
   Moon,
   Sun,
   UserRound,
+  Globe,
 } from "lucide-react";
 import Logo from "../../assets/favicon.svg";
 import ProfileModal from "../ProfileModal";
 
 export default function AdminSidebar() {
-  const { user, dispatch } = useContext(AuthContext);
+  const { user, dispatch, handleLogout } = useContext(AuthContext);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
@@ -34,12 +35,8 @@ export default function AdminSidebar() {
     { label: "Dashboard", icon: LayoutDashboard, to: "/Admin" },
     { label: "Users", icon: Users, to: "/Admin/users" },
     { label: "Projects", icon: FolderOpen, to: "/Admin/projects" },
+    { label: "User App", icon: Globe, to: "/Dashboard" },
   ];
-
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/Login");
-  };
 
   const handleProfileUpdated = (updatedUser) => {
     if (updatedUser?.name) {
