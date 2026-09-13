@@ -3,9 +3,11 @@ import {
   CheckCircle,
   XCircle,
   EyeOff,
+  Eye,
   Trash2,
   Loader2,
   ShieldOff,
+  ShieldCheck,
 } from "lucide-react";
 import axios from "../../axiosConfig/axiosConfig";
 import RejectModal from "./RejectModal";
@@ -69,6 +71,21 @@ export default function AdminProjects() {
   const handleToggleHide = (projectId) => {
     axios
       .patch(`/api/admin/projects/${projectId}/hide`, {}, { headers })
+      .then((res) => {
+        setProjects((prev) =>
+          prev.map((p) => (p._id === projectId ? res.data.data : p)),
+        );
+      })
+      .catch((err) => console.log(err.message));
+  };
+
+  const handleDismissReports = (projectId) => {
+    axios
+      .patch(
+        `/api/admin/projects/${projectId}/dismiss-reports`,
+        {},
+        { headers },
+      )
       .then((res) => {
         setProjects((prev) =>
           prev.map((p) => (p._id === projectId ? res.data.data : p)),
@@ -206,6 +223,17 @@ export default function AdminProjects() {
 
                 {/* actions */}
                 <div className="flex items-center gap-1.5">
+                  {/* Preview Project (disabled for now)
+                  <a
+                    href={`/public/${project._id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Preview Project"
+                    className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                  >
+                    <Eye size={15} />
+                  </a>
+                  */}
                   {project.isPublic && !project.isApproved && (
                     <button
                       onClick={() => handleApprove(project._id)}
@@ -231,6 +259,15 @@ export default function AdminProjects() {
                       className="p-1.5 rounded-lg text-neutral-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors"
                     >
                       <ShieldOff size={15} />
+                    </button>
+                  )}
+                  {project.reportCount > 0 && (
+                    <button
+                      onClick={() => handleDismissReports(project._id)}
+                      title="Dismiss Reports"
+                      className="p-1.5 rounded-lg text-neutral-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
+                    >
+                      <ShieldCheck size={15} />
                     </button>
                   )}
                   <button

@@ -207,6 +207,27 @@ adminController.deleteProject = async (req, res) => {
     console.log(err.message);
     res.status(500).json({ message: err.message });
   }
+}
+adminController.dismissReports = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const project = await Project.findByIdAndUpdate(
+      id,
+      { reportCount: 0 },
+      { returnDocument: "after" },
+    ).populate("userId", "name email");
+
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    res
+      .status(200)
+      .json({ data: project, message: "Project reports dismissed" });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ message: err.message });
+  }
 };
 
 export default adminController;

@@ -140,12 +140,14 @@ projectController.getAllPublicProjects = async (req, res) => {
 projectController.getPublicProjectById = async (req, res) => {
   const { id } = req.params;
   try {
-    const project = await Project.findOne({
-      _id: id,
-      isPublic: true,
-      isHidden: false,
-      isApproved: true,
-    }).populate("userId", "name");
+    const filter = { _id: id };
+    if (req.role !== "admin") {
+      filter.isPublic = true;
+      filter.isHidden = false;
+      filter.isApproved = true;
+    }
+
+    const project = await Project.findOne(filter).populate("userId", "name");
 
     if (!project) {
       return res.status(404).json({ message: "Project not found" });

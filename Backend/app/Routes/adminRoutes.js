@@ -64,6 +64,13 @@ router.patch(
   adminController.revokeApproval,
 );
 
+router.patch(
+  "/projects/:id/dismiss-reports",
+  authenticateUser,
+  authorizeUser(["admin"]),
+  adminController.dismissReports,
+);
+
 router.delete(
   "/projects/:id",
   authenticateUser,

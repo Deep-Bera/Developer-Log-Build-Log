@@ -8,6 +8,8 @@ import {
   CheckCircle,
   XCircle,
   EyeOff,
+  Eye,
+  ShieldCheck,
 } from "lucide-react";
 import axios from "../axiosConfig/axiosConfig";
 import AdminLayout from "../components/admin/AdminLayout";
@@ -60,7 +62,7 @@ export default function AdminDashboard() {
         setPendingProjects((prev) => prev.filter((p) => p._id !== projectId));
         setStats((prev) => ({
           ...prev,
-          pendingApprovals: prev.pendingApprovals - 1,
+          pendingApprovals: Math.max(0, prev.pendingApprovals - 1),
         }));
       })
       .catch((err) => console.log(err.message));
@@ -80,7 +82,7 @@ export default function AdminDashboard() {
         );
         setStats((prev) => ({
           ...prev,
-          pendingApprovals: prev.pendingApprovals - 1,
+          pendingApprovals: Math.max(0, prev.pendingApprovals - 1),
         }));
         setRejectModal({ isOpen: false, project: null });
       })
@@ -95,6 +97,23 @@ export default function AdminDashboard() {
         setReportedProjects((prev) =>
           prev.map((p) => (p._id === projectId ? res.data.data : p)),
         );
+      })
+      .catch((err) => console.log(err.message));
+  };
+
+  const handleDismissReports = (projectId) => {
+    axios
+      .patch(
+        `/api/admin/projects/${projectId}/dismiss-reports`,
+        {},
+        { headers },
+      )
+      .then(() => {
+        setReportedProjects((prev) => prev.filter((p) => p._id !== projectId));
+        setStats((prev) => ({
+          ...prev,
+          reportedProjects: Math.max(0, prev.reportedProjects - 1),
+        }));
       })
       .catch((err) => console.log(err.message));
   };
@@ -195,6 +214,18 @@ export default function AdminDashboard() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
+                    {/* Preview button (disabled for now)
+                    <a
+                      href={`/public/${project._id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+                      title="Preview Project"
+                    >
+                      <Eye size={13} />
+                      Preview
+                    </a>
+                    */}
                     <button
                       onClick={() => handleApprove(project._id)}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-950/60 transition-colors"
@@ -251,13 +282,35 @@ export default function AdminDashboard() {
                       </span>
                     </p>
                   </div>
-                  <button
-                    onClick={() => handleToggleHide(project._id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
-                  >
-                    <EyeOff size={13} />
-                    {project.isHidden ? "Unhide" : "Hide"}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {/* Preview button (disabled for now)
+                    <a
+                      href={`/public/${project._id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+                      title="Preview Project"
+                    >
+                      <Eye size={13} />
+                      Preview
+                    </a>
+                    */}
+                    <button
+                      onClick={() => handleDismissReports(project._id)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-950/60 transition-colors"
+                      title="Clear and dismiss all reports for this project"
+                    >
+                      <ShieldCheck size={13} />
+                      Dismiss Reports
+                    </button>
+                    <button
+                      onClick={() => handleToggleHide(project._id)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+                    >
+                      <EyeOff size={13} />
+                      {project.isHidden ? "Unhide" : "Hide"}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

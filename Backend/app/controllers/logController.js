@@ -55,8 +55,12 @@ logsController.getAllLogs = async (req, res) => {
       return res.status(404).json({ message: "Project not found" });
     }
 
-    //Block access if project is private and requester is not owner
-    if (!project.isPublic && project.userId?.toString() !== req.userId) {
+    //Block access if project is private and requester is not owner and not admin
+    if (
+      !project.isPublic &&
+      project.userId?.toString() !== req.userId &&
+      req.role !== "admin"
+    ) {
       return res.status(403).json({ message: "This project is private" });
     }
 
