@@ -39,7 +39,8 @@ export default function AdminUsers() {
   };
 
   return (
-    <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl">
+    <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden">
+      {/* header */}
       <div className="px-5 py-4 border-b border-neutral-100 dark:border-neutral-800">
         <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
           All Users
@@ -63,64 +64,78 @@ export default function AdminUsers() {
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
-          {/* table header */}
-          <div className="grid grid-cols-4 px-5 py-2.5 bg-neutral-50 dark:bg-neutral-800/50">
-            {["Name", "Email", "Role", "Joined"].map((col) => (
-              <p
-                key={col}
-                className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500"
-              >
-                {col}
-              </p>
-            ))}
-          </div>
+        <table className="w-full">
+          <thead className="bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-100 dark:border-neutral-800">
+            <tr>
+              {["Name", "Email", "Role", "Joined", ""].map((col) => (
+                <th
+                  key={col}
+                  className="text-left px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500"
+                >
+                  {col}
+                </th>
+              ))}
+            </tr>
+          </thead>
 
-          {users.map((user) => (
-            <div
-              key={user._id}
-              className="grid grid-cols-4 items-center px-5 py-3.5 hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors"
-            >
-              <p className="text-sm font-medium text-neutral-900 dark:text-white capitalize">
-                {user.name}
-              </p>
-              <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                {user.email}
-              </p>
-              <span
-                className={`inline-flex w-fit px-2 py-0.5 rounded-full text-[11px] font-medium ${
-                  user.role === "admin"
-                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                    : "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400"
-                }`}
+          <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+            {users.map((user) => (
+              <tr
+                key={user._id}
+                className="hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors"
               >
-                {user.role}
-              </span>
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-neutral-400 dark:text-neutral-500">
+                {/* name */}
+                <td className="px-5 py-3.5 text-sm font-medium text-neutral-900 dark:text-white capitalize">
+                  {user.name}
+                </td>
+
+                {/* email */}
+                <td className="px-5 py-3.5 text-sm text-neutral-500 dark:text-neutral-400">
+                  {user.email}
+                </td>
+
+                {/* role badge */}
+                <td className="px-5 py-3.5">
+                  <span
+                    className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                      user.role === "admin"
+                        ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                        : "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400"
+                    }`}
+                  >
+                    {user.role}
+                  </span>
+                </td>
+
+                {/* joined date */}
+                <td className="px-5 py-3.5 text-sm text-neutral-400 dark:text-neutral-500">
                   {new Date(user.createdAt).toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",
                     year: "numeric",
                   })}
-                </p>
-                {user.role !== "admin" && (
-                  <button
-                    onClick={() => handleDelete(user._id)}
-                    disabled={deletingId === user._id}
-                    className="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors disabled:opacity-40"
-                  >
-                    {deletingId === user._id ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <Trash2 size={14} />
-                    )}
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+                </td>
+
+                {/* delete action */}
+                <td className="px-5 py-3.5 text-right">
+                  {user.role !== "admin" && (
+                    <button
+                      onClick={() => handleDelete(user._id)}
+                      disabled={deletingId === user._id}
+                      className="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors disabled:opacity-40"
+                    >
+                      {deletingId === user._id ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <Trash2 size={14} />
+                      )}
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );

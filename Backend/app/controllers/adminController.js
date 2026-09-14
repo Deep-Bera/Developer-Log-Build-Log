@@ -40,7 +40,7 @@ adminController.getStats = async (req, res) => {
 
 adminController.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password").sort({ createdAt: -1 });
+    const users = await User.find().select("-password").sort({ createdAt: -1 }); //it will exclude the password field
     res.status(200).json({ data: users });
   } catch (err) {
     console.log(err.message);
@@ -207,7 +207,7 @@ adminController.deleteProject = async (req, res) => {
     console.log(err.message);
     res.status(500).json({ message: err.message });
   }
-}
+};
 adminController.dismissReports = async (req, res) => {
   const { id } = req.params;
   try {

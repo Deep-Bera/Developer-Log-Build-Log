@@ -3,7 +3,6 @@ import {
   CheckCircle,
   XCircle,
   EyeOff,
-  Eye,
   Trash2,
   Loader2,
   ShieldOff,
@@ -128,7 +127,8 @@ export default function AdminProjects() {
 
   return (
     <>
-      <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl">
+      <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden">
+        {/* header */}
         <div className="px-5 py-4 border-b border-neutral-100 dark:border-neutral-800">
           <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
             All Projects
@@ -152,147 +152,160 @@ export default function AdminProjects() {
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
-            {/* table header */}
-            <div className="grid grid-cols-5 px-5 py-2.5 bg-neutral-50 dark:bg-neutral-800/50">
-              {["Project", "Owner", "Status", "Flags", "Actions"].map((col) => (
-                <p
-                  key={col}
-                  className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500"
+          <table className="w-full">
+            <thead className="bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-100 dark:border-neutral-800">
+              <tr>
+                {["Project", "Owner", "Status", "Flags", "Actions"].map(
+                  (col) => (
+                    <th
+                      key={col}
+                      className="text-left px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500"
+                    >
+                      {col}
+                    </th>
+                  ),
+                )}
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+              {projects.map((project) => (
+                <tr
+                  key={project._id}
+                  className="hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors"
                 >
-                  {col}
-                </p>
+                  {/* project name + log count */}
+                  <td className="px-5 py-3.5">
+                    <p className="text-sm font-medium text-neutral-900 dark:text-white">
+                      {project.name}
+                    </p>
+                    <p className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-0.5">
+                      {project.logCount} logs
+                    </p>
+                  </td>
+
+                  {/* owner */}
+                  <td className="px-5 py-3.5 text-sm text-neutral-500 dark:text-neutral-400">
+                    {project.userId?.name || "Unknown"}
+                  </td>
+
+                  {/* status badge */}
+                  <td className="px-5 py-3.5">
+                    <span
+                      className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                        project.status === "in-progress"
+                          ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                          : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                      }`}
+                    >
+                      {project.status === "in-progress"
+                        ? "Building"
+                        : "Complete"}
+                    </span>
+                  </td>
+
+                  {/* flags */}
+                  <td className="px-5 py-3.5">
+                    <div className="flex flex-col gap-1 text-[11px]">
+                      {project.isPublic && !project.isApproved && (
+                        <span className="text-amber-500 font-medium">
+                          Pending
+                        </span>
+                      )}
+                      {project.isApproved && (
+                        <span className="text-green-600 dark:text-green-400 font-medium">
+                          Approved
+                        </span>
+                      )}
+                      {project.isHidden && (
+                        <span className="text-neutral-400 font-medium">
+                          Hidden
+                        </span>
+                      )}
+                      {project.reportCount > 0 && (
+                        <span className="text-red-500 font-medium">
+                          {project.reportCount} reports
+                        </span>
+                      )}
+                      {!project.isPublic &&
+                        !project.isApproved &&
+                        !project.rejectionReason && (
+                          <span className="text-neutral-400">Private</span>
+                        )}
+                      {project.rejectionReason && (
+                        <span className="text-red-400 font-medium">
+                          Rejected
+                        </span>
+                      )}
+                    </div>
+                  </td>
+
+                  {/* actions */}
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-1.5">
+                      {project.isPublic && !project.isApproved && (
+                        <button
+                          onClick={() => handleApprove(project._id)}
+                          title="Approve"
+                          className="p-1.5 rounded-lg text-neutral-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30 transition-colors"
+                        >
+                          <CheckCircle size={15} />
+                        </button>
+                      )}
+                      {project.isPublic && !project.isApproved && (
+                        <button
+                          onClick={() =>
+                            setRejectModal({ isOpen: true, project })
+                          }
+                          title="Reject"
+                          className="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                        >
+                          <XCircle size={15} />
+                        </button>
+                      )}
+                      {project.isApproved && (
+                        <button
+                          onClick={() => handleRevoke(project._id)}
+                          title="Revoke Approval"
+                          className="p-1.5 rounded-lg text-neutral-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors"
+                        >
+                          <ShieldOff size={15} />
+                        </button>
+                      )}
+                      {project.reportCount > 0 && (
+                        <button
+                          onClick={() => handleDismissReports(project._id)}
+                          title="Dismiss Reports"
+                          className="p-1.5 rounded-lg text-neutral-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
+                        >
+                          <ShieldCheck size={15} />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleToggleHide(project._id)}
+                        title={project.isHidden ? "Unhide" : "Hide"}
+                        className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                      >
+                        <EyeOff size={15} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(project._id)}
+                        disabled={deletingId === project._id}
+                        title="Delete"
+                        className="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors disabled:opacity-40"
+                      >
+                        {deletingId === project._id ? (
+                          <Loader2 size={15} className="animate-spin" />
+                        ) : (
+                          <Trash2 size={15} />
+                        )}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
               ))}
-            </div>
-
-            {projects.map((project) => (
-              <div
-                key={project._id}
-                className="grid grid-cols-5 items-center px-5 py-3.5 hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors"
-              >
-                {/* project name */}
-                <div>
-                  <p className="text-sm font-medium text-neutral-900 dark:text-white">
-                    {project.name}
-                  </p>
-                  <p className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-0.5">
-                    {project.logCount} logs
-                  </p>
-                </div>
-
-                {/* owner */}
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                  {project.userId?.name || "Unknown"}
-                </p>
-
-                {/* status badges */}
-                <div className="flex flex-col gap-1">
-                  <span
-                    className={`inline-flex w-fit px-2 py-0.5 rounded-full text-[11px] font-medium ${
-                      project.status === "in-progress"
-                        ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                        : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                    }`}
-                  >
-                    {project.status === "in-progress" ? "Building" : "Complete"}
-                  </span>
-                </div>
-
-                {/* flags */}
-                <div className="flex flex-col gap-1 text-[11px]">
-                  {project.isPublic && !project.isApproved && (
-                    <span className="text-amber-500 font-medium">Pending</span>
-                  )}
-                  {project.isApproved && (
-                    <span className="text-green-600 dark:text-green-400 font-medium">
-                      Approved
-                    </span>
-                  )}
-                  {project.isHidden && (
-                    <span className="text-neutral-400 font-medium">Hidden</span>
-                  )}
-                  {project.reportCount > 0 && (
-                    <span className="text-red-500 font-medium">
-                      {project.reportCount} reports
-                    </span>
-                  )}
-                  {!project.isPublic && (
-                    <span className="text-neutral-400">Private</span>
-                  )}
-                </div>
-
-                {/* actions */}
-                <div className="flex items-center gap-1.5">
-                  {/* Preview Project (disabled for now)
-                  <a
-                    href={`/public/${project._id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    title="Preview Project"
-                    className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                  >
-                    <Eye size={15} />
-                  </a>
-                  */}
-                  {project.isPublic && !project.isApproved && (
-                    <button
-                      onClick={() => handleApprove(project._id)}
-                      title="Approve"
-                      className="p-1.5 rounded-lg text-neutral-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30 transition-colors"
-                    >
-                      <CheckCircle size={15} />
-                    </button>
-                  )}
-                  {project.isPublic && !project.isApproved && (
-                    <button
-                      onClick={() => setRejectModal({ isOpen: true, project })}
-                      title="Reject"
-                      className="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                    >
-                      <XCircle size={15} />
-                    </button>
-                  )}
-                  {project.isApproved && (
-                    <button
-                      onClick={() => handleRevoke(project._id)}
-                      title="Revoke Approval"
-                      className="p-1.5 rounded-lg text-neutral-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors"
-                    >
-                      <ShieldOff size={15} />
-                    </button>
-                  )}
-                  {project.reportCount > 0 && (
-                    <button
-                      onClick={() => handleDismissReports(project._id)}
-                      title="Dismiss Reports"
-                      className="p-1.5 rounded-lg text-neutral-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
-                    >
-                      <ShieldCheck size={15} />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleToggleHide(project._id)}
-                    title={project.isHidden ? "Unhide" : "Hide"}
-                    className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                  >
-                    <EyeOff size={15} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(project._id)}
-                    disabled={deletingId === project._id}
-                    title="Delete"
-                    className="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors disabled:opacity-40"
-                  >
-                    {deletingId === project._id ? (
-                      <Loader2 size={15} className="animate-spin" />
-                    ) : (
-                      <Trash2 size={15} />
-                    )}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+            </tbody>
+          </table>
         )}
       </div>
 
