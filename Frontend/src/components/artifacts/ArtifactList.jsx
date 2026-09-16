@@ -22,7 +22,7 @@ export default function ArtifactList({
       </div>
 
       {/* list */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto hide-scrollbar">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <Loader2

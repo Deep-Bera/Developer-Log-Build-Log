@@ -9,6 +9,7 @@ const artifactController = {};
 
 artifactController.generateArtifact = async (req, res) => {
   const { projectId } = req.params;
+  const { type } = req.body;
   const allowedTypes = [
     "readme",
     "interview-qa",
@@ -64,16 +65,32 @@ artifactController.generateArtifact = async (req, res) => {
 
     // build the prompt..
     const prompt = buildPrompt(type, project, logs);
+    if (!prompt) {
+      return res.status(400).json({
+        message: `Invalid or unsupported artifact type: ${type}`,
+      });
+    }
 
     // call gemini..
-    // const result = await model.generateContent(prompt);
-    // const content = result.response.text();
     const result = await genAI.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
     });
-    const content = result.text;
-    // console.log(content);
+
+    const content =
+      result?.text ||
+      result?.candidates?.[0]?.content?.parts
+        ?.map((part) => part.text)
+        .join("\n")
+        ?.trim();
+
+    if (!content) {
+      console.log("Empty content from Gemini response:", JSON.stringify(result));
+      return res.status(500).json({
+        message: "Failed to generate content from AI. Please try again.",
+      });
+    }
+
     // save the artifact..
     const artifact = await Artifact.create({
       projectId,
