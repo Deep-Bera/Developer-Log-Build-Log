@@ -6,7 +6,16 @@ import ArtifactModal from "../artifacts/ArtifactModal";
 import ArtifactList from "../artifacts/ArtifactList";
 import ArtifactViewer from "../artifacts/ArtifactViewer";
 import ProjectTopBar from "../ProjectTopbar";
-import { Loader2, FileText, MessageCircle, Sparkles } from "lucide-react";
+import {
+  Loader2,
+  FileCode,
+  HelpCircle,
+  GraduationCap,
+  ClipboardList,
+  Briefcase,
+  Lightbulb,
+  Sparkles,
+} from "lucide-react";
 
 export default function ProjectArtifacts() {
   const { id } = useParams();
@@ -121,11 +130,43 @@ export default function ProjectArtifacts() {
 
   const countByType = (type) => artifacts.filter((a) => a.type === type).length;
 
-  const getTypeIcon = (type) =>
-    type === "readme" ? <FileText size={13} /> : <MessageCircle size={13} />;
+  const getTypeIcon = (type) => {
+    switch (type) {
+      case "readme":
+        return <FileCode size={13} className="text-blue-500" />;
+      case "interview-qa":
+        return <HelpCircle size={13} className="text-purple-500" />;
+      case "study-summary":
+        return <GraduationCap size={13} className="text-emerald-500" />;
+      case "progress-report":
+        return <ClipboardList size={13} className="text-amber-500" />;
+      case "work-summary":
+        return <Briefcase size={13} className="text-indigo-500" />;
+      case "lesson-reflection":
+        return <Lightbulb size={13} className="text-rose-500" />;
+      default:
+        return <FileCode size={13} />;
+    }
+  };
 
-  const getTypeLabel = (type) =>
-    type === "readme" ? "README.md" : "Interview Q&A";
+  const getTypeLabel = (type) => {
+    switch (type) {
+      case "readme":
+        return "README.md";
+      case "interview-qa":
+        return "Interview Q&A";
+      case "study-summary":
+        return "Study & Revision Notes";
+      case "progress-report":
+        return "Formal Progress Report";
+      case "work-summary":
+        return "Work & Sprint Digest";
+      case "lesson-reflection":
+        return "Lesson Reflection";
+      default:
+        return type;
+    }
+  };
 
   if (!project)
     return (

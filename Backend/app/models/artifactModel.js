@@ -15,7 +15,14 @@ const artifactSchema = new Schema(
     },
     type: {
       type: String,
-      enum: ["readme", "interview-qa"],
+      enum: [
+        "readme",
+        "interview-qa",
+        "study-summary",
+        "progress-report",
+        "work-summary",
+        "lesson-reflection",
+      ],
       required: true,
     },
     content: {

@@ -12,15 +12,13 @@ export default function ArtifactList({
   return (
     <div className="w-[35%] shrink-0 flex flex-col overflow-hidden rounded-xl bg-white dark:bg-neutral-900 shadow-sm">
       {/* counts */}
-      <div className="px-5 py-3 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
-        <div className="flex items-center gap-4">
-          <span className="text-[11px] text-neutral-400 dark:text-neutral-500">
-            README {countByType("readme")}/3
-          </span>
-          <span className="text-[11px] text-neutral-400 dark:text-neutral-500">
-            Q&A {countByType("interview-qa")}/3
-          </span>
-        </div>
+      <div className="px-5 py-3 border-b border-neutral-100 dark:border-neutral-800 shrink-0 flex items-center justify-between">
+        <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+          Generated Documents
+        </span>
+        <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400">
+          {artifacts.length} {artifacts.length === 1 ? "artifact" : "artifacts"}
+        </span>
       </div>
 
       {/* list */}

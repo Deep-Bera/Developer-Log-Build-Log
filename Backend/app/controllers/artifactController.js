@@ -9,8 +9,15 @@ const artifactController = {};
 
 artifactController.generateArtifact = async (req, res) => {
   const { projectId } = req.params;
-  const { type } = req.body;
-  if (!type || !["readme", "interview-qa"].includes(type)) {
+  const allowedTypes = [
+    "readme",
+    "interview-qa",
+    "study-summary",
+    "progress-report",
+    "work-summary",
+    "lesson-reflection",
+  ];
+  if (!type || !allowedTypes.includes(type)) {
     return res.status(400).json({ message: "Invalid artifact type" });
   }
 
