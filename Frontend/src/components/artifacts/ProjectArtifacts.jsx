@@ -88,12 +88,14 @@ export default function ProjectArtifacts() {
     setIsEditing(true);
   };
 
-  const handleSave = () => {
+  const handleSave = (updatedContent) => {
     setIsSaving(true);
+    const contentToSave =
+      typeof updatedContent === "string" ? updatedContent : editContent;
     axios
       .patch(
         `/api/artifacts/${id}/${selectedArtifact._id}`,
-        { content: editContent },
+        { content: contentToSave },
         { headers },
       )
       .then((response) => {
