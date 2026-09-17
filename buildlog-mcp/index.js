@@ -79,7 +79,9 @@ function createServer() {
       const session = sessionData[sessionId];
       const token = session?.token || process.env.BUILDLOG_TOKEN;
       const apiUrl =
-        session?.apiUrl || process.env.BUILDLOG_API_URL || "http://localhost:5701";
+        session?.apiUrl ||
+        process.env.BUILDLOG_API_URL ||
+        "http://localhost:5701";
 
       if (!token) {
         return {
@@ -152,7 +154,9 @@ function createServer() {
       const session = sessionData[sessionId];
       const token = session?.token || process.env.BUILDLOG_TOKEN;
       const apiUrl =
-        session?.apiUrl || process.env.BUILDLOG_API_URL || "http://localhost:5701";
+        session?.apiUrl ||
+        process.env.BUILDLOG_API_URL ||
+        "http://localhost:5701";
 
       if (!token) {
         return {
@@ -224,7 +228,8 @@ app.post("/mcp", async (req, res) => {
           transports[sid] = transport;
           sessionData[sid] = {
             token: token || process.env.BUILDLOG_TOKEN,
-            apiUrl: apiUrl || process.env.BUILDLOG_API_URL || "http://localhost:5701",
+            apiUrl:
+              apiUrl || process.env.BUILDLOG_API_URL || "http://localhost:5701",
           };
         },
       });
