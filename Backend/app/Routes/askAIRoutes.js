@@ -36,4 +36,20 @@ router.post(
   askController.askAIToolResult,
 );
 
+// general knowledge questions — straight to Gemini, no RAG..
+router.post(
+  "/general",
+  authenticateUser,
+  authorizeUser(["admin", "user"]),
+  askController.askAIGeneral,
+);
+
+// summarize chat Q&A to log draft..
+router.post(
+  "/summarize-to-log",
+  authenticateUser,
+  authorizeUser(["admin", "user"]),
+  askController.summarizeToLog,
+);
+
 export default router;

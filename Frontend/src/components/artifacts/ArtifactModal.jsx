@@ -141,8 +141,8 @@ export default function ArtifactModal({
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-medium transition-all ${isActive
-                    ? "bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white shadow-xs"
-                    : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
+                  ? "bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white shadow-xs"
+                  : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
                   }`}
               >
                 <TabIcon size={13} />
@@ -170,23 +170,23 @@ export default function ArtifactModal({
                 key={type.id}
                 onClick={() => setSelectedType(type.id)}
                 className={`w-full text-left p-4 rounded-xl border transition-all flex items-start justify-between gap-3 ${isSelected
-                    ? "border-neutral-900 dark:border-white bg-neutral-50 dark:bg-neutral-800"
-                    : "border-neutral-200 dark:border-neutral-700/80 hover:border-neutral-300 dark:hover:border-neutral-600 bg-white dark:bg-neutral-900"
+                  ? "border-neutral-900 dark:border-white bg-neutral-50 dark:bg-neutral-800"
+                  : "border-neutral-200 dark:border-neutral-700/80 hover:border-neutral-300 dark:hover:border-neutral-600 bg-white dark:bg-neutral-900"
                   }`}
               >
                 <div className="flex items-start gap-3 min-w-0">
                   <Icon
                     size={18}
                     className={`shrink-0 mt-0.5 ${isSelected
-                        ? "text-neutral-900 dark:text-white"
-                        : "text-neutral-400 dark:text-neutral-500"
+                      ? "text-neutral-900 dark:text-white"
+                      : "text-neutral-400 dark:text-neutral-500"
                       }`}
                   />
                   <div className="min-w-0">
                     <p
                       className={`text-xs font-semibold ${isSelected
-                          ? "text-neutral-900 dark:text-white"
-                          : "text-neutral-700 dark:text-neutral-300"
+                        ? "text-neutral-900 dark:text-white"
+                        : "text-neutral-700 dark:text-neutral-300"
                         }`}
                     >
                       {type.title}
@@ -210,8 +210,8 @@ export default function ArtifactModal({
 
                 <div
                   className={`w-3.5 h-3.5 rounded-full border shrink-0 mt-1 transition-colors ${isSelected
-                      ? "border-neutral-900 dark:border-white bg-neutral-900 dark:bg-white"
-                      : "border-neutral-300 dark:border-neutral-600"
+                    ? "border-neutral-900 dark:border-white bg-neutral-900 dark:bg-white"
+                    : "border-neutral-300 dark:border-neutral-600"
                     }`}
                 />
               </button>

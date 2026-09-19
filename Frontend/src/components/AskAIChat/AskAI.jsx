@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Sparkles, Send, Trash2 } from "lucide-react";
+import { Sparkles, Send, Trash2, Bookmark, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import axios from "../../axiosConfig/axiosConfig";
 import useAuthError from "../../customHook/AuthErrorHook";
@@ -8,6 +8,7 @@ import getIntent from "../../helpers/getIntent";
 import { checkHealth, initSession, callTool } from "../../helpers/mcpClient";
 import SkeletonCard from "./SkeletonCard";
 import SourceChips from "./SourceChips";
+import SaveAsLogModal from "./SaveAsLogModal";
 
 const STORAGE_KEY = import.meta.env.VITE_STORAGE_KEY || "askai_history";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5701";
@@ -25,6 +26,14 @@ export default function AskAI() {
       return [];
     }
   });
+  const [saveLogModal, setSaveLogModal] = useState({
+    isOpen: false,
+    question: "",
+    answer: "",
+    precedingContext: "",
+    itemKey: null,
+  });
+  const [savedLogItems, setSavedLogItems] = useState({});
   const bottomRef = useRef(null);
   const handleAuthError = useAuthError();
 
@@ -192,19 +201,46 @@ export default function AskAI() {
 
     const token = localStorage.getItem("token");
 
-    // categorize intent using Gemini..
-    const intent = await getIntent(question, token);
+    // categorize intent — pass last 1 turn so follow-up pronouns resolve correctly..
+    const intent = await getIntent(question, token, history);
 
     if (intent === "CREATE") {
       await handleCreateLog(question);
       return;
     }
 
-    // regular RAG flow..
+    if (intent === "GENERAL") {
+      // general knowledge — straight to Gemini with last 4 turns as context..
+      try {
+        const response = await axios.post(
+          "/api/ask/general",
+          { query: question, history: history.slice(-4) },
+          { headers: { Authorization: token } },
+        );
+
+        const { answer } = response.data;
+        addToHistory(question, answer, []); // no sources for general answers
+      } catch (err) {
+        handleAuthError(err);
+        const status = err.response?.status;
+        let errorMessage = "Something went wrong. Please try again.";
+        if (status === 503)
+          errorMessage =
+            "AI service is currently busy. Please try again in a moment.";
+        else if (status === 400) errorMessage = "Please enter a valid question.";
+        addToHistory(question, errorMessage, [], true);
+      } finally {
+        setIsLoading(false);
+        setPendingQuestion(null);
+      }
+      return;
+    }
+
+    // SEARCH — RAG flow with last 2 turns for follow-up question context..
     try {
       const response = await axios.post(
         "/api/ask",
-        { query: question },
+        { query: question, history: history.slice(-2) },
         { headers: { Authorization: token } },
       );
 
@@ -241,6 +277,34 @@ export default function AskAI() {
   const handleClearChat = () => {
     sessionStorage.removeItem(STORAGE_KEY);
     setHistory([]);
+  };
+
+  const handleOpenSaveModal = (item, index) => {
+    let precedingContext = "";
+    if (index > 0) {
+      const prev = history[index - 1];
+      precedingContext = `User: ${prev.question}\nAI: ${prev.answer.slice(0, 250)}`;
+    }
+    setSaveLogModal({
+      isOpen: true,
+      question: item.question,
+      answer: item.answer,
+      precedingContext,
+      itemKey: item.timestamp || index,
+    });
+  };
+
+  const handleCloseSaveModal = () => {
+    setSaveLogModal((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  const handleLogSaved = (projectId, savedLog) => {
+    const targetProject = projects.find((p) => p._id === projectId);
+    const projectName = targetProject?.name || "Project";
+    setSavedLogItems((prev) => ({
+      ...prev,
+      [saveLogModal.itemKey]: projectName,
+    }));
   };
 
   return (
@@ -289,86 +353,117 @@ export default function AskAI() {
             </div>
           )}
 
-          {history.map((item, index) => (
-            <div key={item.timestamp || index} className="space-y-3">
-              <div className="flex justify-end">
-                <div className="max-w-[85%] bg-indigo-600 text-white px-4 py-2.5 rounded-2xl rounded-tr-sm text-sm leading-relaxed shadow-xs">
-                  {item.question}
-                </div>
-              </div>
+          {history.map((item, index) => {
+            const itemKey = item.timestamp || index;
+            const isSaved = Boolean(savedLogItems[itemKey]);
+            const canSaveAsLog =
+              !item.isError &&
+              !item.isMcp &&
+              item.answer &&
+              !item.answer.includes("couldn't find any relevant logs");
 
-              <div className="flex items-start gap-3 bg-white dark:bg-neutral-900 border border-neutral-300/80 dark:border-neutral-800 p-4 rounded-2xl shadow-xs">
-                <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center shrink-0 mt-0.5">
-                  <Sparkles
-                    size={12}
-                    className="text-indigo-600 dark:text-indigo-400"
-                  />
+            return (
+              <div key={itemKey} className="space-y-3">
+                <div className="flex justify-end">
+                  <div className="max-w-[85%] bg-indigo-600 text-white px-4 py-2.5 rounded-2xl rounded-tr-sm text-sm leading-relaxed shadow-xs">
+                    {item.question}
+                  </div>
                 </div>
 
-                <div className="flex-1 overflow-hidden">
-                  <div
-                    className={`text-sm leading-relaxed ${item.isError ? "text-red-500 dark:text-red-400" : "text-neutral-800 dark:text-neutral-200"}`}
-                  >
-                    <ReactMarkdown
-                      components={{
-                        ul: ({ ...props }) => (
-                          <ul
-                            className="list-disc list-inside space-y-1 my-2"
-                            {...props}
-                          />
-                        ),
-                        ol: ({ ...props }) => (
-                          <ol
-                            className="list-decimal list-inside space-y-1 my-2"
-                            {...props}
-                          />
-                        ),
-                        li: ({ ...props }) => (
-                          <li className="leading-relaxed" {...props} />
-                        ),
-                        p: ({ ...props }) => (
-                          <p
-                            className="mb-2 last:mb-0 leading-relaxed"
-                            {...props}
-                          />
-                        ),
-                        code({ inline, className, children, ...props }) {
-                          const isInline = inline || !className;
-                          return isInline ? (
-                            <code
-                              className="bg-neutral-200/80 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 px-1.5 py-0.5 rounded text-xs font-mono"
-                              {...props}
-                            >
-                              {children}
-                            </code>
-                          ) : (
-                            <code
-                              className="block bg-neutral-900 dark:bg-neutral-950 text-neutral-100 p-3 rounded-lg text-xs font-mono overflow-x-auto my-2 border border-neutral-800"
-                              {...props}
-                            >
-                              {children}
-                            </code>
-                          );
-                        },
-                      }}
-                    >
-                      {item.answer}
-                    </ReactMarkdown>
+                <div className="flex items-start gap-3 bg-white dark:bg-neutral-900 border border-neutral-300/80 dark:border-neutral-800 p-4 rounded-2xl shadow-xs">
+                  <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center shrink-0 mt-0.5">
+                    <Sparkles
+                      size={12}
+                      className="text-indigo-600 dark:text-indigo-400"
+                    />
                   </div>
 
-                  {/* show mcp badge for logs created via git diff.. */}
-                  {item.isMcp && !item.isError && (
-                    <div className="mt-2 flex items-center gap-1 text-[11px] text-indigo-500 dark:text-indigo-400">
-                      <Sparkles size={11} />
-                      <span>Created By AI</span>
+                  <div className="flex-1 overflow-hidden">
+                    <div
+                      className={`text-sm leading-relaxed ${item.isError ? "text-red-500 dark:text-red-400" : "text-neutral-800 dark:text-neutral-200"}`}
+                    >
+                      <ReactMarkdown
+                        components={{
+                          ul: ({ ...props }) => (
+                            <ul
+                              className="list-disc list-inside space-y-1 my-2"
+                              {...props}
+                            />
+                          ),
+                          ol: ({ ...props }) => (
+                            <ol
+                              className="list-decimal list-inside space-y-1 my-2"
+                              {...props}
+                            />
+                          ),
+                          li: ({ ...props }) => (
+                            <li className="leading-relaxed" {...props} />
+                          ),
+                          p: ({ ...props }) => (
+                            <p
+                              className="mb-2 last:mb-0 leading-relaxed"
+                              {...props}
+                            />
+                          ),
+                          code({ inline, className, children, ...props }) {
+                            const isInline = inline || !className;
+                            return isInline ? (
+                              <code
+                                className="bg-neutral-200/80 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 px-1.5 py-0.5 rounded text-xs font-mono"
+                                {...props}
+                              >
+                                {children}
+                              </code>
+                            ) : (
+                              <code
+                                className="block bg-neutral-900 dark:bg-neutral-950 text-neutral-100 p-3 rounded-lg text-xs font-mono overflow-x-auto my-2 border border-neutral-800"
+                                {...props}
+                              >
+                                {children}
+                              </code>
+                            );
+                          },
+                        }}
+                      >
+                        {item.answer}
+                      </ReactMarkdown>
                     </div>
-                  )}
 
-                  <SourceChips sources={item.sources} />
+                    {/* show mcp badge for logs created via git diff.. */}
+                    {item.isMcp && !item.isError && (
+                      <div className="mt-2 flex items-center gap-1 text-[11px] text-indigo-500 dark:text-indigo-400">
+                        <Sparkles size={11} />
+                        <span>Created By AI</span>
+                      </div>
+                    )}
+
+                    <SourceChips sources={item.sources} />
+
+                    {/* Save as log action bar */}
+                    {canSaveAsLog && (
+                      <div className="mt-3 pt-2.5 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between">
+                        {isSaved ? (
+                          <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                            <Check size={13} />
+                            <span>Saved to {savedLogItems[itemKey]}</span>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenSaveModal(item, index)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-neutral-500 hover:text-indigo-600 dark:text-neutral-400 dark:hover:text-indigo-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
+                          >
+                            <Bookmark size={12} />
+                            <span>Save as log</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {isLoading && pendingQuestion && (
             <div className="space-y-3">
@@ -419,6 +514,17 @@ export default function AskAI() {
           </p>
         </div>
       </footer>
+
+      {/* Save as Log Modal */}
+      <SaveAsLogModal
+        isOpen={saveLogModal.isOpen}
+        onClose={handleCloseSaveModal}
+        question={saveLogModal.question}
+        answer={saveLogModal.answer}
+        precedingContext={saveLogModal.precedingContext}
+        projects={projects}
+        onLogSaved={handleLogSaved}
+      />
     </div>
   );
 }
