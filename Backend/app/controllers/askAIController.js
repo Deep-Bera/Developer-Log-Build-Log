@@ -81,7 +81,7 @@ Answer:`;
 
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const result = await genAI.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.0-flash", // RAG answer
       contents: prompt,
     });
 
@@ -370,7 +370,7 @@ User query: "${query}"`;
 
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const result = await genAI.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-1.5-flash", // intent classification — one word, no reasoning needed
       contents: prompt,
     });
 
@@ -421,7 +421,7 @@ Keep answers focused and developer-friendly.`;
 
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const result = await genAI.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.0-flash", // general Q&A answer
       contents,
       config: { systemInstruction },
     });
@@ -479,7 +479,7 @@ Return ONLY a valid JSON object in this exact schema (no markdown fences, no ext
 
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const result = await genAI.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.0-flash", // structured extraction, same tier as General Q&A
       contents: prompt,
       config: {
         responseMimeType: "application/json",
