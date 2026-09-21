@@ -229,13 +229,22 @@ export default function AdminProjects() {
                       )}
                       {!project.isPublic &&
                         !project.isApproved &&
+                        !project.isRejected &&
                         !project.rejectionReason && (
                           <span className="text-neutral-400">Private</span>
                         )}
-                      {project.rejectionReason && (
-                        <span className="text-red-400 font-medium">
-                          Rejected
-                        </span>
+                      {(project.isRejected || project.rejectionReason) && (
+                        <div className="relative group/reject inline-block">
+                          <span className="text-red-400 font-medium cursor-help">
+                            Rejected
+                          </span>
+                          <div className="absolute left-0 bottom-full mb-1.5 hidden group-hover/reject:block z-30 w-56 p-2 bg-neutral-900 dark:bg-neutral-800 text-white rounded-lg shadow-xl text-xs border border-neutral-700 pointer-events-none">
+                            <p className="text-[11px] text-neutral-300">
+                              {project.rejectionReason?.trim() ||
+                                "No rejection reason provided"}
+                            </p>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </td>

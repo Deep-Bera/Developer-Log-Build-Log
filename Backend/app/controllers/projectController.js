@@ -167,10 +167,11 @@ projectController.setProjectVisibility = async (req, res) => {
       { _id: id, userId: req.userId },
       {
         isPublic: !req.project.isPublic,
-        // if making public again, clear rejection reason and reset approval..
+        // if making public again, clear rejection reason, rejection flag, and reset approval..
         ...(req.project.isPublic === false && {
           rejectionReason: "",
           isApproved: false,
+          isRejected: false,
         }),
       },
       { returnDocument: "after" },

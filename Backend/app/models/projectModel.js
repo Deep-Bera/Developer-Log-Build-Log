@@ -49,6 +49,10 @@ const projectSchema = new Schema(
       type: String,
       default: "",
     },
+    isRejected: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );

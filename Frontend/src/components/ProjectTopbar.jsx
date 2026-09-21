@@ -1,4 +1,4 @@
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, XCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function ProjectTopBar({ project, activeTab, children }) {
@@ -35,6 +35,27 @@ export default function ProjectTopBar({ project, activeTab, children }) {
           >
             {project.status === "in-progress" ? "Building" : "Complete"}
           </span>
+
+          {(project.isRejected || project.rejectionReason) && (
+            <div className="relative group/reject shrink-0">
+              <span className="flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 border border-red-200/80 dark:border-red-900/50 cursor-help">
+                <XCircle size={12} />
+                Rejected
+              </span>
+
+              <div className="absolute left-0 top-full mt-1.5 hidden group-hover/reject:block z-30 w-64 p-2.5 bg-neutral-900 dark:bg-neutral-800 text-white rounded-lg shadow-xl text-xs border border-neutral-700 pointer-events-none transition-all">
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-red-400 mb-1">
+                  <XCircle size={12} className="shrink-0" />
+                  <span>Rejection Reason</span>
+                </div>
+                <p className="text-[11px] text-neutral-200 dark:text-neutral-300 leading-relaxed break-words font-normal">
+                  {project.rejectionReason?.trim() ||
+                    "No rejection reason provided"}
+                </p>
+                <div className="absolute left-4 -top-1 w-2 h-2 bg-neutral-900 dark:bg-neutral-800 rotate-45 border-l border-t border-neutral-700" />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* tab pill — grows to fill center space */}

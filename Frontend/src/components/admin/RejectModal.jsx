@@ -42,7 +42,7 @@ export default function RejectModal({
           rows={3}
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="Explain why this project is being rejected..."
+          placeholder="Explain why this project is being rejected (optional)..."
           className="w-full px-3 py-2 text-sm border border-neutral-200 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white outline-none focus:border-amber-500 dark:focus:border-amber-500 transition-colors placeholder:text-neutral-400 resize-none mb-4"
         />
 
@@ -55,7 +55,7 @@ export default function RejectModal({
           </button>
           <button
             onClick={() => onConfirm(reason)}
-            disabled={!reason.trim() || isLoading}
+            disabled={isLoading}
             className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium rounded-lg bg-red-600 text-white hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             {isLoading ? (

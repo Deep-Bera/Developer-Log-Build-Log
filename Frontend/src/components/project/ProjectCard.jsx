@@ -157,15 +157,29 @@ export default function ProjectCard({
 
         {/* approval status sits at the far right — only when project is public */}
         <div className="ml-auto">
-          {project.rejectionReason ? (
-            // rejected — show reason in tooltip even though isPublic is now false..
-            <span
-              className="flex items-center gap-1 text-[11px] text-red-500 dark:text-red-400 font-medium"
-              title={project.rejectionReason}
+          {project.isRejected || project.rejectionReason ? (
+            <div
+              className="relative group/reject"
+              onClick={(e) => e.stopPropagation()}
             >
-              <XCircle size={12} />
-              Rejected
-            </span>
+              <span className="flex items-center gap-1 text-[11px] text-red-500 dark:text-red-400 font-medium px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-950/40 border border-red-200/80 dark:border-red-900/50 cursor-help">
+                <XCircle size={12} />
+                Rejected
+              </span>
+
+              {/* Hover tooltip */}
+              <div className="absolute right-0 bottom-full mb-2 hidden group-hover/reject:block z-30 w-60 p-2.5 bg-neutral-900 dark:bg-neutral-800 text-white rounded-lg shadow-xl text-xs border border-neutral-700 pointer-events-none transition-all">
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-red-400 mb-1">
+                  <XCircle size={12} className="shrink-0" />
+                  <span>Rejection Reason</span>
+                </div>
+                <p className="text-[11px] text-neutral-200 dark:text-neutral-300 leading-relaxed break-words font-normal">
+                  {project.rejectionReason?.trim() || "No rejection reason provided"}
+                </p>
+                {/* Arrow */}
+                <div className="absolute right-3.5 -bottom-1 w-2 h-2 bg-neutral-900 dark:bg-neutral-800 rotate-45 border-r border-b border-neutral-700" />
+              </div>
+            </div>
           ) : project.isPublic ? (
             project.isApproved ? (
               <span className="flex items-center gap-1 text-[11px] text-green-600 dark:text-green-400 font-medium">

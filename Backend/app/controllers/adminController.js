@@ -100,7 +100,7 @@ adminController.approveProject = async (req, res) => {
   try {
     const project = await Project.findByIdAndUpdate(
       id,
-      { isApproved: true, rejectionReason: "" },
+      { isApproved: true, isRejected: false, rejectionReason: "" },
       { returnDocument: "after" },
     ).populate("userId", "name email");
 
@@ -118,10 +118,7 @@ adminController.approveProject = async (req, res) => {
 adminController.rejectProject = async (req, res) => {
   const { id } = req.params;
   const { rejectionReason } = req.body;
-
-  if (!rejectionReason || rejectionReason.trim() === "") {
-    return res.status(400).json({ message: "Rejection reason is required" });
-  }
+  const reason = rejectionReason ? rejectionReason.trim() : "";
 
   try {
     const project = await Project.findByIdAndUpdate(
@@ -129,7 +126,8 @@ adminController.rejectProject = async (req, res) => {
       {
         isApproved: false,
         isPublic: false,
-        rejectionReason: rejectionReason.trim(),
+        isRejected: true,
+        rejectionReason: reason,
       },
       { returnDocument: "after" },
     ).populate("userId", "name email");
@@ -150,7 +148,7 @@ adminController.revokeApproval = async (req, res) => {
   try {
     const project = await Project.findByIdAndUpdate(
       id,
-      { isApproved: false, rejectionReason: "", isPublic: false },
+      { isApproved: false, isRejected: false, rejectionReason: "", isPublic: false },
       { returnDocument: "after" },
     ).populate("userId", "name email");
 
