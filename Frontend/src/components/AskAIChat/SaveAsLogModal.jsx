@@ -57,7 +57,6 @@ export default function SaveAsLogModal({
   // When modal opens, initialize and request AI summary
   useEffect(() => {
     if (!isOpen) return;
-
     setError("");
     // Default project
     if (projects.length > 0 && !selectedProjectId) {
@@ -66,8 +65,8 @@ export default function SaveAsLogModal({
       setSelectedProjectId(projects[0]._id);
     }
 
-    // Default placeholder content from answer in case user edits immediately
-    setContent(answer.slice(0, 300));
+    // Reset form state while AI is summarizing
+    setContent("");
     setEntryType("Learn");
     setTags("");
     setIsSummarizing(true);
@@ -88,12 +87,19 @@ export default function SaveAsLogModal({
       })
       .catch((err) => {
         console.log("Failed to summarize log with AI:", err.message);
-        // Fallback: keep sliced answer
+        // Fallback: strip raw markdown headers and fences for a cleaner snippet
+        const cleanedSnippet = answer
+          .replace(/```[\s\S]*?```/g, "[code block]")
+          .replace(/#+\s*/g, "")
+          .replace(/\n+/g, " ")
+          .trim()
+          .slice(0, 250);
+        setContent(cleanedSnippet);
       })
       .finally(() => {
         setIsSummarizing(false);
       });
-  }, [isOpen, question, answer, projects]);
+  }, [isOpen, question, answer, precedingContext, projects]);
 
   if (!isOpen) return null;
 
@@ -230,9 +236,8 @@ export default function SaveAsLogModal({
                     key={opt.id}
                     type="button"
                     onClick={() => setEntryType(opt.id)}
-                    className={`py-1.5 px-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                      isSelected ? opt.activeClass : opt.inactiveClass
-                    }`}
+                    className={`py-1.5 px-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-1 ${isSelected ? opt.activeClass : opt.inactiveClass
+                      }`}
                   >
                     {isSelected && <Check size={11} />}
                     <span>{opt.label}</span>
@@ -256,7 +261,11 @@ export default function SaveAsLogModal({
               rows={4}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="What was decided, solved, or learned?"
+              placeholder={
+                isSummarizing
+                  ? "AI is drafting a crisp summary of this conversation..."
+                  : "What was decided, solved, or learned?"
+              }
               className="w-full text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-300/80 dark:border-neutral-700 rounded-xl p-3 text-neutral-900 dark:text-white outline-none focus:border-indigo-500 transition-colors resize-none leading-relaxed"
             />
           </div>

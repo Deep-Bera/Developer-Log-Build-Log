@@ -282,8 +282,10 @@ export default function AskAI() {
   const handleOpenSaveModal = (item, index) => {
     let precedingContext = "";
     if (index > 0) {
-      const prev = history[index - 1];
-      precedingContext = `User: ${prev.question}\nAI: ${prev.answer.slice(0, 250)}`;
+      const pastTurns = history.slice(Math.max(0, index - 4), index);
+      precedingContext = pastTurns
+        .map((h) => `User: ${h.question}\nAI: ${h.answer.slice(0, 250)}`)
+        .join("\n\n");
     }
     setSaveLogModal({
       isOpen: true,

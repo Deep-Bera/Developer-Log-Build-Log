@@ -67,11 +67,10 @@ askController.askAI = async (req, res) => {
     const prompt = `You are an AI assistant helping a developer reflect on their project journey.
 Based on the following log entries from the developer's build log, answer their question concisely and accurately.
 Only use information from the provided logs. If the logs don't contain enough information, say so.
-${
-  recentContext
-    ? `\nRecent conversation for context:\n${recentContext}\n`
-    : ""
-}
+${recentContext
+        ? `\nRecent conversation for context:\n${recentContext}\n`
+        : ""
+      }
 Developer's question: ${query}
 
 Relevant log entries:
@@ -81,7 +80,7 @@ Answer:`;
 
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const result = await genAI.models.generateContent({
-      model: "gemini-2.0-flash", // RAG answer
+      model: "gemini-2.5-flash", // RAG answer
       contents: prompt,
     });
 
@@ -91,12 +90,12 @@ Answer:`;
     const finalSources = noInfoRegex.test(answer)
       ? []
       : relevantLogs.map((log) => ({
-          logId: log._id,
-          projectId: log.projectId,
-          entryType: log.entryType,
-          createdAt: log.createdAt,
-          score: log.score,
-        }));
+        logId: log._id,
+        projectId: log.projectId,
+        entryType: log.entryType,
+        createdAt: log.createdAt,
+        score: log.score,
+      }));
 
     res.status(200).json({ answer, sources: finalSources });
   } catch (err) {
@@ -370,7 +369,7 @@ User query: "${query}"`;
 
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const result = await genAI.models.generateContent({
-      model: "gemini-1.5-flash", // intent classification — one word, no reasoning needed
+      model: "gemini-2.5-flash-lite", // intent classification — one word, no reasoning needed
       contents: prompt,
     });
 
@@ -421,7 +420,7 @@ Keep answers focused and developer-friendly.`;
 
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const result = await genAI.models.generateContent({
-      model: "gemini-2.0-flash", // general Q&A answer
+      model: "gemini-2.5-flash", // general Q&A answer
       contents,
       config: { systemInstruction },
     });
@@ -455,10 +454,10 @@ askController.summarizeToLog = async (req, res) => {
   if (!req.userId) {
     return res.status(401).json({ message: "Unauthorized" });
   }
-
+  let parsed;
   try {
     const prompt = `You are an AI assistant for Build Log, a developer journal platform.
-Analyze the following conversation turn between a developer and an AI assistant, and summarize it into a single structured log entry.
+Your task is to convert a conversation turn between a developer and an AI into a clean, concise 1-3 sentence developer journal log entry.
 
 ${precedingContext ? `Preceding conversation context:\n${precedingContext}\n\n` : ""}
 Developer Question: "${question}"
@@ -470,16 +469,21 @@ Categorize the takeaway into exactly one of these 4 entry types:
 - "Win": Milestones reached, features completed, major progress made, optimizations.
 - "Learn": Insights gained, technical takeaways, how something works, best practices.
 
+Guidelines for summary content:
+- Write 1-3 clear, professional sentences summarizing the core technical takeaway, solution, or insight.
+- Do NOT include markdown headers (###), title prefixes like "Summary:", or raw code blocks.
+- Ensure it reads naturally as a developer logbook entry.
+
 Return ONLY a valid JSON object in this exact schema (no markdown fences, no extra text):
 {
   "entryType": "Decision" | "Blocker" | "Win" | "Learn",
-  "content": "A crisp, well-written 1-3 sentence summary of what was decided, solved, learned, or built. Do not write raw markdown headers.",
+  "content": "Crisp 1-3 sentence summary of what was decided, solved, learned, or built.",
   "tags": ["tag1", "tag2", "tag3"]
 }`;
 
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const result = await genAI.models.generateContent({
-      model: "gemini-2.0-flash", // structured extraction, same tier as General Q&A
+      model: "gemini-2.5-flash", // structured extraction, same tier as General Q&A
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -490,8 +494,6 @@ Return ONLY a valid JSON object in this exact schema (no markdown fences, no ext
       result.text ||
       result?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ||
       "{}";
-
-    let parsed;
     try {
       const cleaned = rawText.replace(/```json\n?|\n?```/g, "").trim();
       parsed = JSON.parse(cleaned);
@@ -515,8 +517,8 @@ Return ONLY a valid JSON object in this exact schema (no markdown fences, no ext
     const content = parsed.content || answer.slice(0, 250);
     const tags = Array.isArray(parsed.tags)
       ? parsed.tags
-          .map((t) => String(t).toLowerCase().trim())
-          .filter(Boolean)
+        .map((t) => String(t).toLowerCase().trim())
+        .filter(Boolean)
       : ["ai-chat"];
 
     return res.status(200).json({
