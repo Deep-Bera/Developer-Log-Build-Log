@@ -156,7 +156,7 @@ export default function SaveAsLogModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl p-6 flex flex-col max-h-[90vh] overflow-y-auto"
+        className="hide-scrollbar w-full max-w-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl p-6 flex flex-col max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

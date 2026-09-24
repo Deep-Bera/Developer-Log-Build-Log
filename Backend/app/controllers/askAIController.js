@@ -369,7 +369,7 @@ User query: "${query}"`;
 
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const result = await genAI.models.generateContent({
-      model: "gemini-2.5-flash-lite", // intent classification — one word, no reasoning needed
+      model: "gemini-2.5-flash", // intent classification — one word, no reasoning needed
       contents: prompt,
     });
 
