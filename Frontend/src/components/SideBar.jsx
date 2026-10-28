@@ -14,6 +14,7 @@ import {
   LogOut,
   UserRound,
   ShieldCheck,
+  ChevronUp,
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -22,6 +23,7 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const lastProjectId = localStorage.getItem("lastVisitedProject");
   const role = user?.role || localStorage.getItem("role") || "user";
@@ -104,36 +106,51 @@ export default function Sidebar() {
       </nav>
 
       {/* bottom section */}
-      <div className="px-3 pb-4 flex flex-col gap-0.5 border-t border-neutral-200 dark:border-neutral-800 pt-3">
-        {/* dark mode toggle */}
-        <button
-          onClick={toggleTheme}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors w-full"
-        >
-          {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-          {theme === "dark" ? "Light mode" : "Dark mode"}
-        </button>
+      <div className="px-3 pb-4 border-t border-neutral-200 dark:border-neutral-800 pt-3">
 
-        {/* profile button */}
-        <button
-          onClick={() => setShowProfileModal(true)}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors w-full"
+        {/* collapsible user menu */}
+        <div
+          className={`flex flex-col gap-0.5 overflow-hidden transition-all duration-200 ease-in-out ${
+            showUserMenu ? "max-h-40 opacity-100 mb-1" : "max-h-0 opacity-0"
+          }`}
         >
-          <UserRound size={16} />
-          Profile
-        </button>
+          {/* dark mode toggle */}
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors w-full"
+          >
+            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+            {theme === "dark" ? "Light mode" : "Dark mode"}
+          </button>
 
-        {/* logout */}
+          {/* profile button */}
+          <button
+            onClick={() => {
+              setShowProfileModal(true);
+              setShowUserMenu(false);
+            }}
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors w-full"
+          >
+            <UserRound size={16} />
+            Profile
+          </button>
+
+          {/* logout */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 transition-colors w-full"
+          >
+            <LogOut size={16} />
+            Logout
+          </button>
+        </div>
+
+        {/* user info row with toggle arrow */}
         <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 transition-colors w-full"
+          onClick={() => setShowUserMenu((prev) => !prev)}
+          className="flex items-center gap-3 px-3 py-2 w-full rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors group"
         >
-          <LogOut size={16} />
-          Logout
-        </button>
-
-        {/* user info */}
-        <div className="flex items-center gap-3 px-3 py-2 mt-1">
+          {/* avatar */}
           <div className="w-7 h-7 rounded-full overflow-hidden shrink-0 flex items-center justify-center">
             {avatar ? (
               <img
@@ -147,7 +164,9 @@ export default function Sidebar() {
               </div>
             )}
           </div>
-          <div className="flex flex-col min-w-0">
+
+          {/* name + role */}
+          <div className="flex flex-col min-w-0 flex-1 text-left">
             <span className="text-xs font-medium text-neutral-900 dark:text-white truncate capitalize">
               {username}
             </span>
@@ -155,7 +174,15 @@ export default function Sidebar() {
               {role}
             </span>
           </div>
-        </div>
+
+          {/* chevron arrow */}
+          <ChevronUp
+            size={14}
+            className={`shrink-0 text-neutral-400 dark:text-neutral-500 transition-transform duration-200 group-hover:text-neutral-600 dark:group-hover:text-neutral-300 ${
+              showUserMenu ? "rotate-0" : "rotate-180"
+            }`}
+          />
+        </button>
       </div>
 
       {/* profile modal */}
