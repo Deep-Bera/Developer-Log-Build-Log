@@ -179,7 +179,7 @@ export default function Sidebar() {
           <ChevronUp
             size={14}
             className={`shrink-0 text-neutral-400 dark:text-neutral-500 transition-transform duration-200 group-hover:text-neutral-600 dark:group-hover:text-neutral-300 ${
-              showUserMenu ? "rotate-0" : "rotate-180"
+              showUserMenu ? "rotate-180" : "rotate-0"
             }`}
           />
         </button>
