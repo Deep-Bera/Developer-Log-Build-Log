@@ -20,7 +20,6 @@ import adminRoute from "./app/Routes/adminRoutes.js";
 
 const app = express();
 const port = process.env.PORT;
-configDB();
 
 app.use(cors());
 app.use(express.json());
@@ -60,6 +59,10 @@ app.use("/api/ask", askRoute);
 // *-------------------------------------Admin Routes----------------------------//
 app.use("/api/admin", adminRoute);
 
-app.listen(port, () => {
-  console.log("server is running on PORT", port);
-});
+try {
+  await configDB();
+  app.listen(port, () => console.log("server is running on PORT", port));
+} catch (err) {
+  console.error("DB connection failed:", err.message);
+  process.exit(1); // crash on purpose so the platform shows a failed deploy
+}
