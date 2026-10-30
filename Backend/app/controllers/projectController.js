@@ -100,8 +100,7 @@ projectController.updateProjectById = async (req, res) => {
 projectController.deleteProject = async (req, res) => {
   const { id } = req.params;
   try {
-    await Log.deleteMany({ projectId: id });
-    await Artifact.deleteMany({ projectId: id });
+    // ownership check first, only the owner's project gets deleted..
     const deletedProject = await Project.findOneAndDelete({
       _id: id,
       userId: req.userId,
@@ -110,6 +109,12 @@ projectController.deleteProject = async (req, res) => {
     if (!deletedProject) {
       return res.status(404).json({ message: "Project not found" });
     }
+
+    // now safe to clean up the children..
+    await Promise.all([
+      Log.deleteMany({ projectId: id }),
+      Artifact.deleteMany({ projectId: id }),
+    ]);
 
     res.status(200).json({ message: "Project deleted successfully" });
   } catch (error) {
