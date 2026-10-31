@@ -1,77 +1,154 @@
-UserSchema
-name, email, password, role (user/moderator/admin), timestamps
-ProjectSchema
-userId, name, stack, startDate, status (building/complete),
-isPublic, reportCount, isHidden, timestamps
-LogSchema
-projectId, userId, entryType (decision/blocker/win/learn),
-content, tags, rawTelemetry, embedding, timestamps
+# 🏗️ Build Log
 
-1. stack — optional array validation
-   javascriptstack: {
-   optional: true,
-   isArray: {
-   errorMessage: "Stack must be an array",
-   },
-   },
-   optional: true means if the user doesn't send stack at all, validation skips it — no error. But if they do send it, isArray kicks in and checks that it's actually an array and not a string or number. So ["React", "Node"] passes, but "React" fails.
+A developer journaling platform where you document your build journey — decisions, blockers, wins, and learnings — as structured log entries. When a project is done, AI generates polished artifacts from those logs. An AI chat lets you search your logs or auto-create entries straight from your latest `git diff`.
 
-2. stack._ — validating each item inside the array
-   javascript"stack._": {
-   isString: {
-   errorMessage: "Each stack item must be a string",
-   },
-   notEmpty: {
-   errorMessage: "Stack item cannot be empty",
-   },
-   trim: true,
-   },
-   The \* is a wildcard — it means "apply these rules to every element inside the stack array." So if someone sends ["React", "", 123], it catches the empty string and the number individually. Without this, isArray only checks that stack is an array — it doesn't care what's inside it.
+---
 
-3. isISO8601 — date format validation
-   javascriptisISO8601: {
-   errorMessage: "Start date must be a valid date",
-   },
-   ISO 8601 is the international standard date format — looks like "2024-07-13" or "2024-07-13T10:30:00Z". This rejects random strings like "yesterday" or "13/07/2024" and only accepts properly formatted dates. MongoDB stores dates internally, but it needs to receive them in a recognisable format first — ISO 8601 is the safest choice.
+## Tech Stack
 
-   startDate: {
-   type: Date,
-   default: Date.now,
-   },
-   Mongoose handles this transformation for you automatically behind the scenes. Because you explicitly defined type: Date, Mongoose intercepts that large millisecond integer right before it hits the database and casts it into a proper BSON Date object (which looks like a standard ISO date string: 2026-07-13T22:41:00.000Z).
+| Layer | Stack |
+|---|---|
+| **Frontend** | React 19, Vite, TailwindCSS 4, React Router v7, Axios |
+| **Backend** | Node.js (ESM), Express v5, MongoDB (Mongoose), JWT, Bcrypt |
+| **AI** | Google Gemini 2.5 Flash — RAG, artifact generation, intent classification, embeddings |
+| **MCP Server** | Node.js, `@modelcontextprotocol/sdk`, Express, Zod |
+| **Storage** | MongoDB Atlas (vector search), Cloudinary (avatars) |
 
-When you open MongoDB Atlas to look at your data, you will see a clean, readable date timestamp, not a giant number.
+---
 
-⚠️ One Critical Mongoose Rule to Remember
-Notice how you wrote default: Date.now without parentheses ()? That is exactly how it should be.
+## Project Structure
 
-default: Date.now (Correct): You are passing a reference to the function. Mongoose will execute this function dynamically every single time a new project is created, saving the exact current time.
+```
+Project/
+├── Backend/           # Express REST API
+├── Frontend/          # React SPA
+└── buildlog-mcp/      # Local MCP server (git diff bridge)
+```
 
-default: Date.now() (Wrong): If you add parentheses, JavaScript runs the function immediately when your server starts up. Every single project created after that would share the exact same timestamp—the moment your backend server turned on.
+---
 
-4. created another VerifyProjectOwener middle ware to re-use the DB call ...it will also prevent from calling DB for the same oparation ..ok so i have used this middlw ware in two of the controller ...for updating the name and for changing the visibility of the porject ...(visit update controller and visibility controller or submit for better understanding )
-   so that the purpose of the middleware can be used ...we could use this middleware in other routs also , to elemenate the DB call oparation ....but i am currently going with the normal way ....as its a small project making DB call should not be a problem ...
+## Core Features
 
-5. go through the protected rotue in the frontend because its quite differecnt from what sir have taught in the class.
-6. for the useEffect in the ProjectCard component ...
-   useEffect with empty [] runs once when the component mounts.
+### 📁 Projects
+Create projects with name, tech stack, and start date. Toggle between **private** and **public** — public projects enter an admin approval queue before appearing in the feed. Mark a project **complete** to unlock artifact generation.
 
-Inside it, we attach an event listener to the document — meaning
-every mouse click anywhere on the page triggers handleClickOutside.
+### 📝 Log Entries
+Each log is categorized as one of four types:
 
-handleClickOutside checks two things:
+| Type | Use case |
+|---|---|
+| `Decision` | Architectural choices, library picks, trade-offs |
+| `Blocker` | Bugs, errors, roadblocks |
+| `Win` | Milestones, shipped features, breakthroughs |
+| `Learn` | Insights, best practices, how something works |
 
-1. does the menu ref exist?
-2. was the click outside the menu div?
+Every log gets a **768-dim vector embedding** (via `gemini-embedding-001`) stored in MongoDB for semantic search.
 
-if both are true → close the menu.
-if the click was inside the menu → contains() returns true → menu stays open.
+### 🤖 AI Artifact Generation
+Once a project is **complete**, generate AI-written documents from your logs:
 
-The return inside useEffect is the cleanup function.
-It runs when the component unmounts (removed from screen).
-It removes the event listener from the document.
+`readme` · `interview-qa` · `study-summary` · `progress-report` · `work-summary` · `lesson-reflection`
 
-Without cleanup → the listener keeps running even after the card
-is gone → dead code running on every click → memory leak.
+Max 3 artifacts per type per project. All artifacts are editable after generation.
 
-Cleanup ensures the listener lives and dies with the component.
+### 💬 Ask AI (3 Modes)
+Every query is automatically classified into one of:
+
+- **SEARCH** — RAG over your own logs (*"What blockers did I face last week?"*). Runs MongoDB Atlas vector search → feeds top 8 logs to Gemini as context.
+- **GENERAL** — General dev Q&A (*"What is Redis?"*). Goes straight to Gemini with conversation history.
+- **CREATE** — Auto-create a log from your git diff (*"create a log from git for Build Log"*). Coordinates a 4-step flow with the local MCP server.
+
+Any AI response can be saved as a structured log entry with one click — Gemini classifies it and suggests tags.
+
+### 🛡️ Admin Dashboard
+- Platform stats (users, projects, pending approvals, reports)
+- Approve / reject / hide / revoke projects
+- Delete users (cascades to all their data)
+
+---
+
+## MCP Server
+
+A locally-running server that bridges AI with your git repo. Must be started **inside your project folder**:
+
+```bash
+cd /your/project/repo
+node /path/to/buildlog-mcp/index.js
+```
+
+**Tools:** `get_git_diff` · `create_log` · `list_projects`
+
+**For Cursor/IDE use**, add to your MCP config:
+```json
+{ "mcpServers": { "buildlog": { "url": "http://localhost:3210/mcp" } } }
+```
+Then set `BUILDLOG_TOKEN` in `buildlog-mcp/.env` (copy JWT from browser localStorage).
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Node.js v18+, MongoDB Atlas account, Gemini API key, Cloudinary account
+
+### Setup
+
+```bash
+# Backend
+cd Backend && npm install && node index.js
+
+# Frontend
+cd Frontend && npm install && npm run dev
+
+# MCP Server (optional — needed for AI git log creation)
+cd buildlog-mcp && npm install
+```
+
+### Environment Variables
+
+**`Backend/.env`**
+```env
+PORT=5701
+MONGO_URI=mongodb+srv://...
+SECRET_TOKEN_KEY=your-jwt-secret
+GEMINI_API_KEY=your-gemini-key
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+```
+
+**`Frontend/.env`**
+```env
+VITE_API_URL=http://localhost:5701
+VITE_MCP_URL=http://localhost:3210
+```
+
+**`buildlog-mcp/.env`** *(only needed for IDE/Cursor)*
+```env
+BUILDLOG_API_URL=http://localhost:5701
+BUILDLOG_TOKEN=your-jwt-token
+```
+
+---
+
+## API Overview
+
+| Group | Base Path | Key Operations |
+|---|---|---|
+| Users | `/api/users` | Register, Login, Get/Update Profile |
+| Projects | `/api/projects` | CRUD, visibility toggle, public feed, reporting |
+| Logs | `/api/logs` | CRUD per project |
+| Artifacts | `/api/artifacts` | Generate, view, edit AI artifacts |
+| Ask AI | `/api/ask` | RAG search, intent, general Q&A, MCP tool flow |
+| Admin | `/api/admin` | Stats, user/project management |
+
+All protected routes require `Authorization: <JWT>` header.
+
+---
+
+## Role System
+
+| Role | Access |
+|---|---|
+| `user` | Own projects, logs, artifacts; public feed; can report |
+| `admin` | Everything above + full admin dashboard |
