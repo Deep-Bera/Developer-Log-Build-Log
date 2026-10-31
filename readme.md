@@ -1,4 +1,4 @@
-# 🏗️ Build Log
+#  Build Log
 
 A developer journaling platform where you document your build journey — decisions, blockers, wins, and learnings — as structured log entries. When a project is done, AI generates polished artifacts from those logs. An AI chat lets you search your logs or auto-create entries straight from your latest `git diff`.
 
