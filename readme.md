@@ -108,7 +108,7 @@ cd buildlog-mcp && npm install
 
 **`Backend/.env`**
 ```env
-PORT=5701
+PORT=5XXX
 MONGO_URI=mongodb+srv://...
 SECRET_TOKEN_KEY=your-jwt-secret
 GEMINI_API_KEY=your-gemini-key
@@ -119,13 +119,13 @@ CLOUDINARY_API_SECRET=...
 
 **`Frontend/.env`**
 ```env
-VITE_API_URL=http://localhost:5701
-VITE_MCP_URL=http://localhost:3210
+VITE_API_URL=http://localhost:5XXX
+VITE_MCP_URL=http://localhost:3XXX
 ```
 
 **`buildlog-mcp/.env`** *(only needed for IDE/Cursor)*
 ```env
-BUILDLOG_API_URL=http://localhost:5701
+BUILDLOG_API_URL=http://localhost:5XXX
 BUILDLOG_TOKEN=your-jwt-token
 ```
 
