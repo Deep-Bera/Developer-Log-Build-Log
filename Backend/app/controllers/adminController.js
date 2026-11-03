@@ -4,7 +4,7 @@ import Log from "../models/logModel.js";
 import Artifact from "../models/artifactModel.js";
 
 const adminController = {};
-
+// just to check
 // overview numbers for the admin dashboard..
 adminController.getStats = async (req, res) => {
   try {
@@ -148,7 +148,12 @@ adminController.revokeApproval = async (req, res) => {
   try {
     const project = await Project.findByIdAndUpdate(
       id,
-      { isApproved: false, isRejected: false, rejectionReason: "", isPublic: false },
+      {
+        isApproved: false,
+        isRejected: false,
+        rejectionReason: "",
+        isPublic: false,
+      },
       { returnDocument: "after" },
     ).populate("userId", "name email");
 
