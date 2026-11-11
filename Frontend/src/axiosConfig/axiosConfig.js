@@ -1,4 +1,6 @@
 import axios from "axios";
 export default axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5701",
+  baseURL:
+    import.meta.env.VITE_API_URL ||
+    "https://developer-log-build-log.onrender.com",
 });
