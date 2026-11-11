@@ -1,9 +1,21 @@
-import Log from "../models/logModel.js";
+﻿import Log from "../models/logModel.js";
 import Project from "../models/projectModel.js";
 import generateEmbedding from "../helper/embeddingGenerator.js";
 import findFunctionCall from "../helper/findFunctionCall.js";
 import { GoogleGenAI } from "@google/genai";
 import mongoose from "mongoose";
+// gemini-3.5-flash-lite is the active fast model
+// safely extract text from any response structure.
+function extractText(result) {
+  return (
+    result?.text ||
+    result?.candidates?.[0]?.content?.parts
+      ?.filter((p) => p.text)
+      ?.map((p) => p.text)
+      .join("") ||
+    ""
+  );
+}
 
 const askController = {};
 
@@ -80,11 +92,11 @@ Answer:`;
 
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const result = await genAI.models.generateContent({
-      model: "gemini-2.5-flash", // RAG answer
+      model: "gemini-3.5-flash-lite", // RAG answer
       contents: prompt,
     });
 
-    const answer = result.text;
+    const answer = extractText(result);
     const noInfoRegex =
       /do not contain|no information|could not find|not mentioned/i;
     const finalSources = noInfoRegex.test(answer)
@@ -151,7 +163,7 @@ const tools = [
   },
 ];
 
-// first turn — send query to gemini with tools, detect if it wants get_git_diff..
+// first turn â€” send query to gemini with tools, detect if it wants get_git_diff..
 askController.askAIWithTools = async (req, res) => {
   const { query } = req.body;
 
@@ -182,14 +194,14 @@ askController.askAIWithTools = async (req, res) => {
     const systemPrompt = `You are an AI assistant for Build Log, a developer journaling platform.
 The user wants to create a log entry from their latest git commit.
 Available projects: ${projects.map((p) => `${p.name} (id: ${p._id})`).join(", ")}
-If the user mentions a project name, match it flexibly — partial matches, different casing, or similar names are fine. Pick the closest match.
+If the user mentions a project name, match it flexibly â€” partial matches, different casing, or similar names are fine. Pick the closest match.
 
 Your job:
 1. Use the get_git_diff tool to read the user's local git changes
-2. Analyze the diff carefully — understand what was changed, why it might have been changed, and what kind of work it represents
+2. Analyze the diff carefully â€” understand what was changed, why it might have been changed, and what kind of work it represents
 3. Based on your analysis, call create_log with:
-   - entryType: one of "Decision", "Blocker", "Win", "Learn" — pick the most appropriate based on the nature of the changes
-   - content: a clear, human-readable summary of what was changed and why — NOT the raw diff. Write it as a developer would describe their work in a journal. 2-4 sentences.
+   - entryType: one of "Decision", "Blocker", "Win", "Learn" â€” pick the most appropriate based on the nature of the changes
+   - content: a clear, human-readable summary of what was changed and why â€” NOT the raw diff. Write it as a developer would describe their work in a journal. 2-4 sentences.
    - tags: 2-4 relevant lowercase tags based on the files and technologies changed
    - projectId: the correct project ID from the available projects
 
@@ -203,7 +215,7 @@ Never use raw diff content as the log content. Always summarize it in plain Engl
     ];
 
     const result = await genAI.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash-lite",
       contents,
       config: { tools },
     });
@@ -211,7 +223,7 @@ Never use raw diff content as the log content. Always summarize it in plain Engl
     const candidate = result.candidates[0];
     const parts = candidate.content.parts;
 
-    // find functionCall part — don't assume it's always parts[0]..
+    // find functionCall part â€” don't assume it's always parts[0]..
     const functionCallPart = findFunctionCall(parts);
 
     if (
@@ -226,7 +238,7 @@ Never use raw diff content as the log content. Always summarize it in plain Engl
           ...contents,
           {
             role: "model",
-            parts: [{ functionCall: functionCallPart.functionCall }],
+            parts,
           },
         ],
       });
@@ -250,7 +262,7 @@ Never use raw diff content as the log content. Always summarize it in plain Engl
   }
 };
 
-// second turn — receives diff from frontend, feeds to gemini, executes create_log..
+// second turn â€” receives diff from frontend, feeds to gemini, executes create_log..
 askController.askAIToolResult = async (req, res) => {
   const { diff, chatHistory, projectId } = req.body;
 
@@ -284,7 +296,7 @@ askController.askAIToolResult = async (req, res) => {
 
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const result = await genAI.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash-lite",
       contents: updatedHistory,
       config: { tools },
     });
@@ -312,7 +324,7 @@ askController.askAIToolResult = async (req, res) => {
           .json({ message: "Could not determine which project to log to" });
       }
 
-      // return create_log args to frontend — let MCP server handle actual creation..
+      // return create_log args to frontend â€” let MCP server handle actual creation..
       return res.status(200).json({
         type: "tool_call",
         toolName: "create_log",
@@ -343,7 +355,7 @@ askController.askAIToolResult = async (req, res) => {
   }
 };
 
-// classify user intent — SEARCH (personal logs), CREATE (git diff log), or GENERAL (knowledge question)..
+// classify user intent â€” SEARCH (personal logs), CREATE (git diff log), or GENERAL (knowledge question)..
 askController.getIntent = async (req, res) => {
   const { query, history = [] } = req.body;
 
@@ -360,20 +372,20 @@ askController.getIntent = async (req, res) => {
 
     const prompt = `Classify the user's intent into exactly one of three categories:
 
-- "SEARCH" — the user wants to search through or ask about their personal development logs, past decisions, blockers, wins, or learnings from their own projects. Keywords like "I", "my", "did I", "last week", "this project" strongly indicate SEARCH.
-- "CREATE" — the user wants to create or capture a new log entry from their git repository or latest commit.
-- "GENERAL" — the user is asking a general knowledge question, concept explanation, or technical question that does NOT require their personal logs. Things like "what is Redis", "explain binary trees", "how does OAuth work".
+- "SEARCH" â€” the user wants to search through or ask about their personal development logs, past decisions, blockers, wins, or learnings from their own projects. Keywords like "I", "my", "did I", "last week", "this project" strongly indicate SEARCH.
+- "CREATE" â€” the user wants to create or capture a new log entry from their git repository or latest commit.
+- "GENERAL" â€” the user is asking a general knowledge question, concept explanation, or technical question that does NOT require their personal logs. Things like "what is Redis", "explain binary trees", "how does OAuth work".
 
 ${recentContext}Reply with exactly one word: "SEARCH", "CREATE", or "GENERAL".
 User query: "${query}"`;
 
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const result = await genAI.models.generateContent({
-      model: "gemini-2.5-flash", // intent classification — one word, no reasoning needed
+      model: "gemini-3.5-flash-lite", // intent classification â€” one word, no reasoning needed
       contents: prompt,
     });
 
-    const text = result.text?.trim().toUpperCase() || "";
+    const text = extractText(result).trim().toUpperCase();
     let intent = "GENERAL";
     if (text.includes("CREATE")) intent = "CREATE";
     else if (text.includes("SEARCH")) intent = "SEARCH";
@@ -391,7 +403,7 @@ User query: "${query}"`;
   }
 };
 
-// answer general knowledge questions directly — no RAG, no vector search..
+// answer general knowledge questions directly â€” no RAG, no vector search..
 askController.askAIGeneral = async (req, res) => {
   const { query, history = [] } = req.body;
 
@@ -420,14 +432,13 @@ Keep answers focused and developer-friendly.`;
 
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const result = await genAI.models.generateContent({
-      model: "gemini-2.5-flash", // general Q&A answer
+      model: "gemini-3.5-flash-lite", // general Q&A answer
       contents,
       config: { systemInstruction },
     });
 
     const answer =
-      result.text ||
-      result?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ||
+      extractText(result) ||
       "I wasn't able to generate an answer. Please try again.";
 
     return res.status(200).json({ answer });
@@ -483,7 +494,7 @@ Return ONLY a valid JSON object in this exact schema (no markdown fences, no ext
 
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const result = await genAI.models.generateContent({
-      model: "gemini-2.5-flash", // structured extraction, same tier as General Q&A
+      model: "gemini-3.5-flash-lite", // structured extraction, same tier as General Q&A
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -491,7 +502,7 @@ Return ONLY a valid JSON object in this exact schema (no markdown fences, no ext
     });
 
     const rawText =
-      result.text ||
+      extractText(result) ||
       result?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ||
       "{}";
     try {
